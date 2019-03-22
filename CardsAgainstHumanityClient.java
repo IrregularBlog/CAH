@@ -64,6 +64,8 @@ public class CardsAgainstHumanityClient extends JFrame
                 int it=0;
                 while ((nachricht = reader.readLine()) != null){
                     //hier müssen die Karten unterschieden werden etc.
+                    
+                    
                     if(nachricht.contains("#+")){
                         
                         String[] temp = nachricht.split("\\#+");
