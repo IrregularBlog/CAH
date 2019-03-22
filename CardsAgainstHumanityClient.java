@@ -16,6 +16,7 @@ public class CardsAgainstHumanityClient extends JFrame
     JPanel[] jpnl = new JPanel[2];
     BufferedReader reader;
     PrintWriter writer;
+    int leer = 0;
 
     Socket sock;
 
@@ -61,27 +62,28 @@ public class CardsAgainstHumanityClient extends JFrame
             ex.printStackTrace();
         }
     }
+    
+    public void nachrichtVerarbeiten(String nachricht){
+        int it=0;
+        if(nachricht.contains("#+")){
 
-    public class EingehendReader implements Runnable{
-        public void run(){
-            String nachricht;
-            try{
-
-                int it=0;
-                while ((nachricht = reader.readLine()) != null){
-                    //hier müssen die Karten unterschieden werden etc.
-                    System.out.println("Hab was  bekommen");
-
-                    if(nachricht.contains("#+")){
-
-                        String[] temp = nachricht.split("\\#+");
+                        String[] temp = nachricht.split("#+");
                         int id = Integer.parseInt(temp[0]);
                         String text = temp[1];
+                        
                         for(int i=0; i<cards.length; i++){
-                            if(cards[i] == null) cards[i] = new Card(id,0, text);
-                        }
-                        updateCards();
-
+                            if(cards[i] == null){ 
+                                cards[i] = new Card(id,0, text); 
+                                updateCards();
+                                return;
+                            }
+                            
+                            }
+                        
+                        
+                        
+                        
+                        
                         //Whitecard wird ersetzt
                     }
                     else if(nachricht.contains("#-")){
@@ -90,7 +92,8 @@ public class CardsAgainstHumanityClient extends JFrame
                         int id = Integer.parseInt(temp[0]);
                         String text = temp[1];
                         for(int i=0; i<cards.length; i++){
-                            if(cards[i].art == 0) cards[i] = new Card(id,1, text);
+                            if(cards[i].art == 1) cards[i] = new Card(id,1, text);
+                            
                         }
                         updateCards();
 
@@ -111,9 +114,19 @@ public class CardsAgainstHumanityClient extends JFrame
                         it++;
                         updateCards();
                     }
+    }
 
-                        
-                    
+    public class EingehendReader implements Runnable{
+        public void run(){
+            String nachricht;
+            try{
+
+                
+                while (true){
+                    //hier müssen die Karten unterschieden werden etc.
+                    nachricht = reader.readLine();
+                    System.out.println("Hab was bekommen :" +nachricht);
+                    nachrichtVerarbeiten(nachricht);
                 }
             }catch(Exception ex){
             }
