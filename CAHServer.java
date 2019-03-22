@@ -12,7 +12,8 @@ public class CAHServer
 {
 
     ArrayList clientAusgabeStröme;
-    ArrayList <Card> whiteList = null,blackList = null;
+    ArrayList <Card> whiteList = null;
+    ArrayList <Card> blackList = null;
     
     int id = 0, verteiler =1;
     
@@ -21,6 +22,7 @@ public class CAHServer
     public class ClientHandler implements Runnable{
         BufferedReader reader;
         Socket sock;
+        int clientNr = -1;
 
         public ClientHandler(Socket clientSocket){
             try{
@@ -33,12 +35,16 @@ public class CAHServer
         public void run(){
             String nachricht;
             try{
-                System.out.println(verteiler);
+                
                 if(verteiler%2 ==0 ){
                     kartenVerteilen(3);
+                    neueBlackCard();
                 }
                 while(true){
-                    if(sock.isConnected()) verteiler++;
+                    if(sock.isConnected()){ 
+                        verteiler++;
+                        clientAusgabeStröme.remove(clientNr);
+                    }
                     break;
                 }
                 /*while((nachricht = reader.readLine()) != null){
@@ -54,6 +60,7 @@ public class CAHServer
     public CAHServer()
     {
         loadCards("whitecards.txt");
+        loadCards("blackcards.txt");
         los();
     }
 
@@ -67,7 +74,10 @@ public class CAHServer
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
                 clientAusgabeStröme.add(writer);
                 verteiler++;
-                Thread t = new Thread(new ClientHandler(clientSocket));
+                ClientHandler c =new ClientHandler(clientSocket);
+                c.clientNr = clientAusgabeStröme.size()-1;
+                Thread t = new Thread(c);
+                
                 t.start();
                 System.out.println("habe eine Verbindung");
 
@@ -97,7 +107,7 @@ public class CAHServer
          
          ArrayList<Card> whiteListD = null;
          whiteListD = (ArrayList<Card>) whiteList.clone();
-         System.out.println("WhiteList: "+whiteListD.size());
+         System.out.println("Clientanzahl: "+clientAusgabeStröme.size());
          
          while(it.hasNext()){
             try{
@@ -114,6 +124,21 @@ public class CAHServer
             }
         }
     }
+    
+    public void neueBlackCard(){
+        Iterator it = clientAusgabeStröme.iterator();
+         int zufallsZahl = (int) (Math.random()*blackList.size());
+         while(it.hasNext()){
+            try{
+                PrintWriter writer = (PrintWriter) it.next();
+               
+                blackList.get(zufallsZahl).senden(writer);
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+            
+            }
+    }
 
     public void loadCards(String daten){
         try{
@@ -123,19 +148,27 @@ public class CAHServer
             String s = "";
             String in = "";
             
-            if(id==0){ whiteList= new ArrayList<Card>();}
-            else blackList = new ArrayList<Card>();
-            while ((s = readerz.readLine()) != null) {
+            
+            
+            whiteList = new ArrayList<Card>();
+            
+            while (!(s=readerz.readLine()).isEmpty()) {
                 in += s;
                 if (blackList == null){
+                    
                     Card tempCard = new Card(id,0,s);
-                    whiteList.add(tempCard);}
+                    whiteList.add(tempCard);
+                    System.out.println("Server hat nun: "+tempCard.text);
+                }
                 else{ Card tempCard = new Card(id,1,s);
                     blackList.add(tempCard);
                 }
                 id++;
              }
+             blackList = new ArrayList<Card>();
             readerz.close();
+            
+            
         
         }catch(Exception ex){}
     }

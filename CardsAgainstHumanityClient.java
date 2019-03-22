@@ -12,6 +12,7 @@ public class CardsAgainstHumanityClient extends JFrame
 {
 
     Card[] cards = new Card[8];
+    Card blackCard = null;
     Card[] cardsOther;
     JPanel[] jpnl = new JPanel[2];
     BufferedReader reader;
@@ -31,7 +32,7 @@ public class CardsAgainstHumanityClient extends JFrame
 
         setLayout(new GridLayout(2,1)); 
         jpnl[0].setLayout(new BorderLayout());
-        jpnl[1].setLayout(new FlowLayout());
+        jpnl[1].setLayout(new GridLayout(1,cards.length)/*new FlowLayout()*/);
 
         add(jpnl[0]);
         add(jpnl[1]);
@@ -46,12 +47,14 @@ public class CardsAgainstHumanityClient extends JFrame
     public void updateMyWhitecards(){
         log("added card");
         for(int i=0; i<cards.length; i++){
-            
             if(cards[i]!= null){
                 jpnl[1].add(cards[i]);
-                
             }
         }
+    }
+    
+    public void updateMyBlackCard(){
+        jpnl[0].add(blackCard);
     }
 
     private void netzwerkEinrichten(){
@@ -70,9 +73,10 @@ public class CardsAgainstHumanityClient extends JFrame
 
     public void nachrichtVerarbeiten(String nachricht){
         int it=0;
-        if(nachricht.contains("//#+")){
 
-            String[] temp = nachricht.split("//#+");
+        if(nachricht.contains("°")){
+
+            String[] temp = nachricht.split("°");
             int id = Integer.parseInt(temp[0]);
             String text = temp[1];
 
@@ -85,20 +89,18 @@ public class CardsAgainstHumanityClient extends JFrame
                 }
 
             }
-       
+
             //Whitecard wird ersetzt
         }
-        else if(nachricht.contains("#-")){
+        else if(nachricht.contains("||")){
 
-            String[] temp = nachricht.split("\\#-");
+            String[] temp = nachricht.split("||");
             int id = Integer.parseInt(temp[0]);
             String text = temp[1];
-            for(int i=0; i<cards.length; i++){
-                if(cards[i].art == 1) cards[i] = new Card(id,1, text);
 
-            }
+            blackCard = new Card(id,1, text);
+            updateMyBlackCard();
             
-
             //Blackcard wird ersetzt
         }
         else if(nachricht.contains("\\#:")){
@@ -116,12 +118,9 @@ public class CardsAgainstHumanityClient extends JFrame
             it++;
 
         }
-        
-        
-    }
-    
-    public void log(Object e){System.out.println(""+e);}
 
+    }
+    public void log(Object e){System.out.println(""+e);}
     public class EingehendReader implements Runnable{
         public void run(){
             String nachricht;
@@ -130,17 +129,16 @@ public class CardsAgainstHumanityClient extends JFrame
                 while (true){
                     //hier müssen die Karten unterschieden werden etc.
                     nachricht = reader.readLine();
-                    
-                    
+                    log("Nachricht in:"+nachricht);
+
                     nachrichtVerarbeiten(nachricht);
-                    
+
                 }
             }catch(Exception ex){
             }
         }
     }
 
-    
 
     //Karte hat ID 
 
