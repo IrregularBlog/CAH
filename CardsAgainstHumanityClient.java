@@ -36,6 +36,9 @@ public class CardsAgainstHumanityClient extends JFrame
        
        
         netzwerkEinrichten();
+         Thread readerThread = new Thread(new EingehendReader());
+        readerThread.start();
+
         
        
        
@@ -50,6 +53,7 @@ public class CardsAgainstHumanityClient extends JFrame
             InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
             reader = new BufferedReader(streamReader);
             writer = new PrintWriter(sock.getOutputStream());
+            
             System.out.println("Netzwerkverbindung steht");
         }catch(Exception ex){
             ex.printStackTrace();
@@ -64,7 +68,7 @@ public class CardsAgainstHumanityClient extends JFrame
                 int it=0;
                 while ((nachricht = reader.readLine()) != null){
                     //hier müssen die Karten unterschieden werden etc.
-                    
+                    System.out.println("Hab was  bekommen");
                     
                     if(nachricht.contains("#+")){
                         
@@ -76,7 +80,7 @@ public class CardsAgainstHumanityClient extends JFrame
                         }
                         updateCards();
                         
-                        System.out.println("Hab ne Karte bekommen");
+                        
                         //Whitecard wird ersetzt
                         }
                     else if(nachricht.contains("#-")){

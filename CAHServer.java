@@ -33,7 +33,8 @@ public class CAHServer
         public void run(){
             String nachricht;
             try{
-                loadCards("whitecards.txt");
+                kartenVerteilen(3);
+                
                 while((nachricht = reader.readLine()) != null){
                     System.out.println("gelesen: "+nachricht);
                     
@@ -46,6 +47,7 @@ public class CAHServer
 
     public CAHServer()
     {
+        loadCards("whitecards.txt");
         los();
     }
 
