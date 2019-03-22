@@ -72,7 +72,9 @@ public class CardsAgainstHumanityClient extends JFrame
                         for(int i=0; i<cards.length; i++){
                             if(cards[i] == null) cards[i] = new Card(id,0, text);
                         }
-                        updateCards();    
+                        updateCards();
+                        
+                        System.out.println("Hab ne Karte bekommen");
                         //Whitecard wird ersetzt
                         }
                     else if(nachricht.contains("#-")){

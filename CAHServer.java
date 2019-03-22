@@ -33,8 +33,10 @@ public class CAHServer
         public void run(){
             String nachricht;
             try{
+                loadCards("whitecards.txt");
                 while((nachricht = reader.readLine()) != null){
                     System.out.println("gelesen: "+nachricht);
+                    
                     //esAllenWeitersagen(nachricht);
                 }
             }catch(Exception ex) {ex.printStackTrace();}
