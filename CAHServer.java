@@ -14,7 +14,7 @@ public class CAHServer
     ArrayList clientAusgabeStröme;
     ArrayList <Card> whiteList = null,blackList = null;
     
-    int id = 0;
+    int id = 0, verteiler =1;
     
     
 
@@ -33,13 +33,19 @@ public class CAHServer
         public void run(){
             String nachricht;
             try{
-                kartenVerteilen(3);
-                
-                while((nachricht = reader.readLine()) != null){
+                System.out.println(verteiler);
+                if(verteiler%2 ==0 ){
+                    kartenVerteilen(3);
+                }
+                while(true){
+                    if(sock.isConnected()) verteiler++;
+                    break;
+                }
+                /*while((nachricht = reader.readLine()) != null){
                     System.out.println("gelesen: "+nachricht);
                     
                     //esAllenWeitersagen(nachricht);
-                }
+                }*/
             }catch(Exception ex) {ex.printStackTrace();}
         }
 
@@ -60,7 +66,7 @@ public class CAHServer
                 Socket clientSocket = serverSock.accept();
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
                 clientAusgabeStröme.add(writer);
-
+                verteiler++;
                 Thread t = new Thread(new ClientHandler(clientSocket));
                 t.start();
                 System.out.println("habe eine Verbindung");
@@ -89,7 +95,9 @@ public class CAHServer
     public void kartenVerteilen(int wieViel){
          Iterator it = clientAusgabeStröme.iterator();
          
-         ArrayList<Card> whiteListD = (ArrayList<Card>)whiteList.clone();
+         ArrayList<Card> whiteListD = null;
+         whiteListD = (ArrayList<Card>) whiteList.clone();
+         System.out.println("WhiteList: "+whiteListD.size());
          
          while(it.hasNext()){
             try{

@@ -20,7 +20,6 @@ public class CardsAgainstHumanityClient extends JFrame
 
     Socket sock;
 
-    
     public CardsAgainstHumanityClient()
     {
         super();
@@ -41,14 +40,20 @@ public class CardsAgainstHumanityClient extends JFrame
         Thread readerThread = new Thread(new EingehendReader());
         readerThread.start();
 
-       
         setVisible(true);
     }
+
     public void updateMyWhitecards(){
+        log("added card");
         for(int i=0; i<cards.length; i++){
-            if(cards[i]!= null)jpnl[1].add(cards[i]);
+            
+            if(cards[i]!= null){
+                jpnl[1].add(cards[i]);
+                
+            }
         }
     }
+
     private void netzwerkEinrichten(){
         try{
             //sock = new Socket("195.202.41.170",5000);
@@ -62,82 +67,80 @@ public class CardsAgainstHumanityClient extends JFrame
             ex.printStackTrace();
         }
     }
-    
+
     public void nachrichtVerarbeiten(String nachricht){
         int it=0;
-        if(nachricht.contains("#+")){
+        if(nachricht.contains("//#+")){
 
-                        String[] temp = nachricht.split("#+");
-                        int id = Integer.parseInt(temp[0]);
-                        String text = temp[1];
-                        
-                        for(int i=0; i<cards.length; i++){
-                            if(cards[i] == null){ 
-                                cards[i] = new Card(id,0, text); 
-                                updateCards();
-                                return;
-                            }
-                            
-                            }
-                        
-                        
-                        
-                        
-                        
-                        //Whitecard wird ersetzt
-                    }
-                    else if(nachricht.contains("#-")){
+            String[] temp = nachricht.split("//#+");
+            int id = Integer.parseInt(temp[0]);
+            String text = temp[1];
 
-                        String[] temp = nachricht.split("\\#-");
-                        int id = Integer.parseInt(temp[0]);
-                        String text = temp[1];
-                        for(int i=0; i<cards.length; i++){
-                            if(cards[i].art == 1) cards[i] = new Card(id,1, text);
-                            
-                        }
-                        updateCards();
+            for(int i=0; i<cards.length; i++){
+                if(cards[i] == null){ 
+                    cards[i] = new Card(id,0, text); 
+                    log("Neue Karte: "+cards[i].text);
+                    updateMyWhitecards();
+                    return;
+                }
 
-                        //Blackcard wird ersetzt
-                    }
-                    else if(nachricht.contains("\\#:")){
-                        nachricht = nachricht.replaceAll("\\#:", "");
-                        cardsOther = new Card[Integer.parseInt(nachricht)];
-                        it =0;
-                        //wie viele haben die anderen
+            }
+       
+            //Whitecard wird ersetzt
+        }
+        else if(nachricht.contains("#-")){
 
-                    }
-                    else if(nachricht.contains("\\#4")){
-                        String[] temp = nachricht.split("\\#4");
-                        int id = Integer.parseInt(temp[0]);
-                        String text = temp[1];
-                        cardsOther[it] = new Card(id,0,text);
-                        it++;
-                        updateCards();
-                    }
+            String[] temp = nachricht.split("\\#-");
+            int id = Integer.parseInt(temp[0]);
+            String text = temp[1];
+            for(int i=0; i<cards.length; i++){
+                if(cards[i].art == 1) cards[i] = new Card(id,1, text);
+
+            }
+            
+
+            //Blackcard wird ersetzt
+        }
+        else if(nachricht.contains("\\#:")){
+            nachricht = nachricht.replaceAll("\\#:", "");
+            cardsOther = new Card[Integer.parseInt(nachricht)];
+            it =0;
+            //wie viele haben die anderen
+
+        }
+        else if(nachricht.contains("\\#4")){
+            String[] temp = nachricht.split("\\#4");
+            int id = Integer.parseInt(temp[0]);
+            String text = temp[1];
+            cardsOther[it] = new Card(id,0,text);
+            it++;
+
+        }
+        
+        
     }
+    
+    public void log(Object e){System.out.println(""+e);}
 
     public class EingehendReader implements Runnable{
         public void run(){
             String nachricht;
             try{
 
-                
                 while (true){
                     //hier müssen die Karten unterschieden werden etc.
                     nachricht = reader.readLine();
-                    System.out.println("Hab was bekommen :" +nachricht);
+                    
+                    
                     nachrichtVerarbeiten(nachricht);
+                    
                 }
             }catch(Exception ex){
             }
         }
     }
 
-    public void updateCards(){
-        for(int i=0; i<cards.length; i++){
-            jpnl[1].add(cards[i]);
-        }
-    }
+    
 
     //Karte hat ID 
 
