@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.net.*;
 import java.io.*;
 
@@ -13,6 +14,11 @@ public class Card extends JLabel{
             this.setText(text);
             this.id = id;
             this.art = art;
+            if(art == 0){ 
+                
+                this.setBackground(Color.WHITE);
+            
+            }
             
             }
         public void senden(PrintWriter writer){
