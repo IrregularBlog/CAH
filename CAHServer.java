@@ -15,17 +15,13 @@ public class CAHServer
     ArrayList <Card> whiteList = null;
     ArrayList <Card> blackList = null;
     ArrayList <Spieler> spieler = new ArrayList <Spieler>();
-    boolean spielstart = true;
-    
-    
-    int id = 0, zähler =1, runden = 0;
-    
-    
+    boolean spielstart = true, cardSzarDran = false;
 
+    int id = 0, zähler =0, runden = 0;
     public class ClientHandler implements Runnable{
         BufferedReader reader;
         Socket sock;
-        int clientNr = -1;
+        int clientNr = 0;
 
         public ClientHandler(Socket clientSocket){
             try{
@@ -34,38 +30,55 @@ public class CAHServer
                 reader = new BufferedReader(isReader);
             }catch(Exception ex) {ex.printStackTrace();}
         }
-        
+
         public void nachrichtVerarbeiten(String nachricht){
             if(nachricht.contains("*")){ 
                 nachricht = nachricht.replace("*","");
+                int siegID = -1;
                 //nachricht.replace("*","");
-                System.out.println("Karte empfangen"+whiteList.get(Integer.parseInt(nachricht)).text);
-                spieler.get(clientNr).addKarte(Integer.parseInt(nachricht));}
+                
+                if(!spieler.get(clientNr).cardSzar){
+                    spieler.get(clientNr).addKarte(Integer.parseInt(nachricht));
+                    System.out.println("Spieler: "+spieler.get(clientNr).spielerID+" hat nun: "+whiteList.get(Integer.parseInt(nachricht)).text);
+                    if(alleSpielerBisAufCS()){
+                        System.out.println("Karten der anderen");
+                        kartenDerAnderen();
+                    }
+                }
+                else{ 
+                    siegID = Integer.parseInt(nachricht);
+                    werHatDieKarteGespielt(siegID).punkte++;
+                    neueRunde();
+                }
+            }
+            if(nachricht.contains("/spieler")){
+                spielerSenden(clientNr);
+            }
+
         }
 
         public void run(){
             String nachricht;
             try{
-               if(spielstart){
-                    neueWhiteCards(6);
-                    neueBlackCard();
-                    spielstart = false;
-                }
+                neueWhiteCardsPersonal(3, clientNr);
+                neueBlackCard();
                 
-               while(true){
+                if(clientNr == 1) neueRunde();
                 
-                  //System.out.println("Bin in der schleife");
-                  if(sock.isClosed() || !sock.isConnected()){ 
+
+                while(true){
+
+                    //System.out.println("Bin in der schleife");
+                    if(sock.isClosed() || !sock.isConnected()){ 
                         clientAusgabeStröme.remove(clientNr);
                         System.out.println("Ausgelogged: "+clientNr);
                         return;
                     }
                     //nachricht = reader.readLine();
                     //System.out.println("Bin in der schleife 2" + reader);
-                  if((nachricht = reader.readLine())!=null) nachrichtVerarbeiten(nachricht);
-                  }
-                
-               
+                    if((nachricht = reader.readLine())!=null) nachrichtVerarbeiten(nachricht);
+                }
+
             }catch(Exception ex) {ex.printStackTrace();}
         }
 
@@ -78,22 +91,58 @@ public class CAHServer
         los();
     }
     
+    public void spielerSenden(int clientNr){
+        PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(clientNr);
+                System.out.println("Jetzt kommen die Spieler");
+                for(int i=0; i<spieler.size(); i++){
+                    
+                    if(i<(spieler.size()-1))writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"''");
+                    else writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"''");
+                }
+                writer.flush();
+    }
+
+    public Spieler werHatDieKarteGespielt(int id){
+        for(int i=0; i<spieler.size(); i++){
+            for(int j=0; j<spieler.get(i).karte.size(); j++){
+                if(spieler.get(i).karte.get(j) == id) return spieler.get(i);
+
+            }
+        }
+        return null;
+    }
+
+    public boolean alleSpielerBisAufCS(){
+        boolean fertig = true;
+        for(int i=0; i<spieler.size(); i++){
+            if(spieler.get(i).karte.size() == 0 && !spieler.get(i).cardSzar){ fertig = false;
+             System.out.println("Abbruch: "+spieler.get(i).spielerID+"hat nun: "+spieler.get(i).karte.size()+" Karten");
+            }
+            
+        }
+        
+        return fertig;
+    }
+
     public void spielerKartenZurücksetzen(){
         for(int i=0; i<spieler.size(); i++){
-            
+
             spieler.get(i).clearKarten();
         }
     }
-    
+
     public void neueRunde(){
-        spieler.get(runden%spieler.size()).cardSzar = true;
-        for(int i=0; i<spieler.size(); i++){
-            
-        }
+        spielerKartenZurücksetzen();
         neueWhiteCards(1);
         neueBlackCard();
+        spieler.get(runden%spieler.size()).cardSzar = true;
+        
+        PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(runden%spieler.size());
+        writer.println("::");
+        writer.flush();
+        
         runden++;
-        }
+    }
 
     public void los(){
         clientAusgabeStröme = new ArrayList();
@@ -103,16 +152,18 @@ public class CAHServer
             while(true){
                 Socket clientSocket = serverSock.accept();
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
-                
+
                 clientAusgabeStröme.add(writer);
-                spieler.add(new Spieler(zähler));
+                //spieler.add(new Spieler(zähler));
                 zähler++;
                 
+
                 ClientHandler c = new ClientHandler(clientSocket);
                 c.clientNr = clientAusgabeStröme.size()-1;
                 spieler.add(new Spieler(c.clientNr));
+                spielerSenden(c.clientNr);
                 Thread t = new Thread(c);
-                
+
                 t.start();
                 System.out.println("habe eine Verbindung");
 
@@ -136,81 +187,110 @@ public class CAHServer
             }
         }
     }
-    
-    public void neueWhiteCards(int wieViel){
-         Iterator it = clientAusgabeStröme.iterator();
-         
-         ArrayList<Card> whiteListD = null;
-         whiteListD = (ArrayList<Card>) whiteList.clone();
-         System.out.println("Clientanzahl: "+clientAusgabeStröme.size());
-         
-         while(it.hasNext()){
+
+    public void kartenDerAnderen(){
+        Iterator it = clientAusgabeStröme.iterator();
+
+        
+        while(it.hasNext()){
             try{
                 PrintWriter writer = (PrintWriter) it.next();
-                
-                for(int i=0; i<wieViel; i++){
-                    int zufallsZahl = (int) (Math.random()*whiteListD.size());
-                    whiteListD.get(zufallsZahl).senden(writer);
-                    whiteListD.remove(zufallsZahl);
+                for(int i=0; i<spieler.size(); i++){
+                    for(int j=0; j<spieler.get(i).karte.size(); j++){
+                        whiteList.get(spieler.get(i).karte.get(j)).sendenZuAnderen(writer);
+                    }
                 }
-                
+
             }catch(Exception ex){
                 ex.printStackTrace();
             }
         }
     }
-    
+    public void neueWhiteCardsPersonal(int wieViel, int wer){
+       PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(wer);
+       
+       ArrayList<Card> whiteListD = null;
+       whiteListD = (ArrayList<Card>) whiteList.clone();
+       for(int i=0; i<wieViel; i++){
+                    int zufallsZahl = (int) (Math.random()*whiteListD.size());
+                    whiteListD.get(zufallsZahl).senden(writer);
+                    whiteListD.remove(zufallsZahl);
+                }
+    }
+    public void neueWhiteCards(int wieViel){
+        Iterator it = clientAusgabeStröme.iterator();
+
+        ArrayList<Card> whiteListD = null;
+        whiteListD = (ArrayList<Card>) whiteList.clone();
+        System.out.println("Clientanzahl: "+clientAusgabeStröme.size());
+
+        while(it.hasNext()){
+            try{
+                PrintWriter writer = (PrintWriter) it.next();
+
+                for(int i=0; i<wieViel; i++){
+                    int zufallsZahl = (int) (Math.random()*whiteListD.size());
+                    whiteListD.get(zufallsZahl).senden(writer);
+                    whiteListD.remove(zufallsZahl);
+                }
+
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }
+        }
+    }
+
     public void neueBlackCard(){
         Iterator it = clientAusgabeStröme.iterator();
         int zufallsZahl = (int) (Math.random()*blackList.size());
         while(it.hasNext()){
             try{
                 PrintWriter writer = (PrintWriter) it.next();
-               
+
                 blackList.get(zufallsZahl).senden(writer);
             }catch(Exception ex){
                 ex.printStackTrace();
             }
-            
-            }
+
+        }
     }
-    
+
     public void loadBlackCards(String daten){
         try{
             File file = new File(daten);
-             
+
             BufferedReader readerz = new BufferedReader(new FileReader(daten));
             String s = "";
             String in = "";
-            
+
             blackList = new ArrayList<Card>();
-            
+
             while (!(s=readerz.readLine()).isEmpty()) {
                 in += s;
                 Card tempCard = new Card(id,1,s);
                 blackList.add(tempCard);
                 id++;
-             }
-            
+            }
+
             readerz.close();
-            
+
         }catch(Exception ex){}
     }
 
     public void loadCards(String daten){
-       try{
+        try{
             File file = new File(daten);
-             
+
             BufferedReader readerz = new BufferedReader(new FileReader(daten));
             String s = "";
             String in = "";
-            
+
             whiteList = new ArrayList<Card>();
-            
+
             while (!(s=readerz.readLine()).isEmpty()) {
                 in += s;
                 if (blackList == null){
-                    
+
                     Card tempCard = new Card(id,0,s);
                     whiteList.add(tempCard);
                     System.out.println("Server hat nun: "+tempCard.text);
@@ -219,15 +299,15 @@ public class CAHServer
                     blackList.add(tempCard);
                 }
                 id++;
-             }
-            
+            }
+
             readerz.close();
-            }catch(Exception ex){}
+        }catch(Exception ex){}
     }
-    
+
     public void main(String[] args){
-        CAHServer server = new CAHServer();
-    
+        //CAHServer server = new CAHServer();
+
     }
 
 }

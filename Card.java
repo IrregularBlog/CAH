@@ -11,6 +11,8 @@ public class Card extends JTextPane {
     int id;
     int art;
     boolean selected = false;
+    boolean selectable = true;
+    
 
     public Card(int id,int art, String text){
 
@@ -40,10 +42,11 @@ public class Card extends JTextPane {
 
         this.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent e) {
+                    if(selectable){
                     selected = !selected;
                     if(selected && art ==0)setBackground(Color.YELLOW);
                     else if(art == 0) setBackground(Color.WHITE);
-                    
+                }
 
             
                 }                
@@ -67,6 +70,13 @@ public class Card extends JTextPane {
         System.out.println("Karte gesendet: "+text);
         if(art == 0)writer.println(id+"°"+text);
         if(art == 1)writer.println(id+"||"+text);
+        writer.flush();
+    }
+    
+     public void sendenZuAnderen(PrintWriter writer){
+        
+        if(art == 0)writer.println(id+"<"+text);
+        //if(art == 1)writer.println(id+"||"+text);
         writer.flush();
     }
 

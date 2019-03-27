@@ -14,12 +14,15 @@ public class CardsAgainstHumanityClient extends JFrame
 
     Card[] cards = new Card[8];
     Card blackCard = null;
-    Card[] cardsOther;
-    JPanel[] jpnl = new JPanel[2];
+    ArrayList<Card> cardsOther = new ArrayList<Card>();
+    JPanel[] jpnl = new JPanel[3];
     BufferedReader reader;
     PrintWriter writer;
     MyButton sender = null;
+    JTextArea spielerListe = new JTextArea();
+    ArrayList<Spieler> spieler = null;
     int leer = 0;
+    boolean cardSzar = false, amZug = true;
 
     Socket sock;
 
@@ -38,25 +41,34 @@ public class CardsAgainstHumanityClient extends JFrame
 
             this.addMouseListener(new MouseAdapter(){
                     public void mouseClicked(MouseEvent e) {
-                        Integer[] selected = getSelected();
-                        for(int i=0; i<selected.length; i++){
-                            writer.println("*"+selected[i]);
-                            
+
+                        if(amZug){
+
+                            System.out.println("gucke nach selected");
+                            Integer[] selected = getSelected();
+                            //System.out.println("selected u.A.: "+selected[0]);
+                            for(int i=0; i<selected.length; i++){
+                                writer.println("*"+selected[i]);
+                                System.out.println("Karte gesendet: "+selected[i]);
+                            }
+                            writer.flush();
+
+
+                            setBackground(Color.YELLOW);
+                            setForeground(Color.white);
+                            paintComponent(getGraphics());
+                            try{
+                                Thread.sleep(300);}catch(Exception ex){};
+                            setBackground(Color.GRAY);
+                            setForeground(Color.black);
+
+                            amZug = false;
                         }
-                        writer.flush();
-
-                        setBackground(Color.YELLOW);
-                        setForeground(Color.white);
-                        paintComponent(getGraphics());
-                        try{
-                            Thread.sleep(300);}catch(Exception ex){};
-                        setBackground(Color.GRAY);
-                        setForeground(Color.black);
-
                     }                
                 });
 
         }
+
         public void setSelected(Card c){
             selected = c;
         }
@@ -73,10 +85,13 @@ public class CardsAgainstHumanityClient extends JFrame
 
         setLayout(new GridLayout(2,1)); 
         jpnl[0].setLayout(new BorderLayout());
-        jpnl[1].setLayout(new GridLayout(1,cards.length+1)/*new FlowLayout()*/);
+        jpnl[1].setLayout(new GridLayout(1,cards.length+2)/*new FlowLayout()*/);
+        jpnl[2].setLayout(new FlowLayout());
+        jpnl[2].setBackground(Color.white);
 
         add(jpnl[0]);
         add(jpnl[1]);
+        jpnl[0].add(jpnl[2],"Center");
 
         netzwerkEinrichten();
 
@@ -85,6 +100,7 @@ public class CardsAgainstHumanityClient extends JFrame
 
     public void updateMyWhitecards(){
         log("added card");
+
         for(int i=0; i<cards.length; i++){
             if(cards[i]!= null){
                 jpnl[1].add(cards[i]);
@@ -94,15 +110,42 @@ public class CardsAgainstHumanityClient extends JFrame
     }
 
     public void updateMyBlackCard(){
-        jpnl[0].add(blackCard);
+        
+        jpnl[0].add(blackCard, "West");
     }
+
+    public void updateCardsOther(){
+        jpnl[2].removeAll();
+        System.out.println("update cards other");
+        
+        for(int i=0; i<cardsOther.size(); i++){
+            jpnl[2].add(cardsOther.get(i));
+        }
+        
+    }
+
+    public void updateSpieler(){
+        writer.println("/spieler");
+        writer.flush();
+    }
+
 
     public Integer[] getSelected(){
         ArrayList<Integer> select = new ArrayList<Integer>();
-        for(int i=0; i<cards.length; i++){
-            if(cards[i]!=null && cards[i].selected ){ 
-                select.add(cards[i].id);
-                cards[i] = null;
+        if(cardSzar){for(int i=0; i<cardsOther.size(); i++){
+
+                if(cardsOther.get(i)!=null && cardsOther.get(i).selected){
+                    select.add(cardsOther.get(i).id);
+                    cardsOther.remove(i);
+                }
+
+            }}
+        else{
+            for(int i=0; i<cards.length; i++){
+                if(i<cards.length && cards[i]!=null && cards[i].selected){ 
+                    select.add(cards[i].id);
+                    cards[i] = null;
+                }
             }
         }
         Integer[] selected = select.toArray(new Integer[select.size()]);
@@ -127,6 +170,12 @@ public class CardsAgainstHumanityClient extends JFrame
 
         sender = new MyButton("Senden",writer);
         jpnl[1].add(sender);
+        jpnl[1].add(spielerListe);
+
+        spielerListe.setLineWrap(true);
+        spielerListe.setWrapStyleWord(true);
+        spielerListe.setEditable(false);
+
     }
 
     public void nachrichtVerarbeiten(String nachricht){
@@ -137,6 +186,7 @@ public class CardsAgainstHumanityClient extends JFrame
             String[] temp = nachricht.split("°");
             int id = Integer.parseInt(temp[0]);
             String text = temp[1];
+            sender.setText("Senden");
 
             for(int i=0; i<cards.length; i++){
                 if(cards[i] == null){ 
@@ -145,8 +195,12 @@ public class CardsAgainstHumanityClient extends JFrame
                     updateMyWhitecards();
                     return;
                 }
-
+                if(cardSzar) cards[i].selectable = false;
+                else cards[i].selectable = true;
             }
+            
+            amZug = true;
+            updateSpieler();
 
             //Whitecard wird ersetzt
         }
@@ -161,20 +215,34 @@ public class CardsAgainstHumanityClient extends JFrame
 
             //Blackcard wird ersetzt
         }
-        else if(nachricht.contains("\\#:")){
-            nachricht = nachricht.replaceAll("\\#:", "");
-            cardsOther = new Card[Integer.parseInt(nachricht)];
-            it =0;
-            //wie viele haben die anderen
+        else if(nachricht.contains("::")){
+            cardSzar = true;
+            sender.setText("CardSzar");
 
         }
-        else if(nachricht.contains("\\#4")){
-            String[] temp = nachricht.split("\\#4");
+        else if(nachricht.contains("''")){
+            String[] temp = nachricht.split("''");
+            spielerListe.setText("Test");
+            spieler.clear();
+            for(int i=0; i<temp.length; i++){
+                String[] temp2 = temp[i].split("%");
+                spieler.add(new Spieler(Integer.parseInt(temp2[0])));
+                spieler.get(spieler.size()-1).punkte = Integer.parseInt(temp2[1]);
+                spielerListe.append(spieler.get(i).spielerID+": "+spieler.get(i).punkte+ "\n");
+            }
+        }
+        else if(nachricht.contains("<")){
+            String[] temp = nachricht.split("<");
+            
             int id = Integer.parseInt(temp[0]);
+            
             String text = temp[1];
-            cardsOther[it] = new Card(id,0,text);
-            it++;
-
+            
+            cardsOther.add( new Card(id,0,text));
+            System.out.println("Ich bin cardSzar: "+cardSzar);
+            if(!cardSzar) cardsOther.get(cardsOther.size()-1).selectable = false;
+            else cardsOther.get(cardsOther.size()-1).selectable = true;
+            updateCardsOther();
         }
 
     }
@@ -188,10 +256,8 @@ public class CardsAgainstHumanityClient extends JFrame
                 while (true){
                     //hier müssen die Karten unterschieden werden etc.
                     nachricht = reader.readLine();
-                    log("Nachricht in:"+nachricht);
 
                     nachrichtVerarbeiten(nachricht);
-
                 }
             }catch(Exception ex){
             }
