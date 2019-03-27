@@ -60,7 +60,7 @@ public class CAHServer
     public CAHServer()
     {
         loadCards("whitecards.txt");
-        loadCards("blackcards.txt");
+        loadBlackCards("blackcards.txt");
         los();
     }
 
@@ -139,11 +139,35 @@ public class CAHServer
             
             }
     }
-
-    public void loadCards(String daten){
+    
+    public void loadBlackCards(String daten){
         try{
             File file = new File(daten);
+             
+            BufferedReader readerz = new BufferedReader(new FileReader(daten));
+            String s = "";
+            String in = "";
             
+            blackList = new ArrayList<Card>();
+            
+            while (!(s=readerz.readLine()).isEmpty()) {
+                in += s;
+                Card tempCard = new Card(id,1,s);
+                blackList.add(tempCard);
+                id++;
+             }
+            
+            readerz.close();
+            
+            
+        
+        }catch(Exception ex){}
+    }
+
+    public void loadCards(String daten){
+       try{
+            File file = new File(daten);
+             
             BufferedReader readerz = new BufferedReader(new FileReader(daten));
             String s = "";
             String in = "";
@@ -165,7 +189,7 @@ public class CAHServer
                 }
                 id++;
              }
-             blackList = new ArrayList<Card>();
+            
             readerz.close();
             
             
