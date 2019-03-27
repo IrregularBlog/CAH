@@ -8,11 +8,13 @@ import java.awt.event.*;
 
 public class MyButton extends JLabel {
     String text = "";
+    PrintWriter writer;
     
     
 
-    public MyButton(int id,int art, String text){
+    public MyButton(String text, PrintWriter writer){
         this.text = text;
+        this.writer = writer;
         this.setText(text);
         Font font = new Font("Verdana", Font.PLAIN, 40);
         this.setFont( font);
@@ -21,7 +23,7 @@ public class MyButton extends JLabel {
 
         this.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent e) {
-                   
+                   writer.println("Hi");
                     
 
             

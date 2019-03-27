@@ -32,8 +32,8 @@ public class CardsAgainstHumanityClient extends JFrame
 
         setLayout(new GridLayout(2,1)); 
         jpnl[0].setLayout(new BorderLayout());
-        jpnl[1].setLayout(new GridLayout(1,cards.length)/*new FlowLayout()*/);
-
+        jpnl[1].setLayout(new GridLayout(1,cards.length+1)/*new FlowLayout()*/);
+        
         add(jpnl[0]);
         add(jpnl[1]);
 
@@ -51,6 +51,7 @@ public class CardsAgainstHumanityClient extends JFrame
                 jpnl[1].add(cards[i]);
             }
         }
+        
     }
     
     public void updateMyBlackCard(){
@@ -69,6 +70,8 @@ public class CardsAgainstHumanityClient extends JFrame
         }catch(Exception ex){
             ex.printStackTrace();
         }
+        
+        jpnl[1].add(new MyButton("Senden", writer));
     }
 
     public void nachrichtVerarbeiten(String nachricht){
