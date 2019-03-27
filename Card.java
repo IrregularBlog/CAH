@@ -16,6 +16,12 @@ public class Card extends JTextPane {
 
         StyleContext.NamedStyle centerStyle = StyleContext.getDefaultStyleContext().new NamedStyle();
         StyleConstants.setAlignment(centerStyle,StyleConstants.ALIGN_CENTER);
+        StyleConstants.setForeground(centerStyle, Color.black);
+        
+        
+        StyleContext.NamedStyle whiteStyle = StyleContext.getDefaultStyleContext().new NamedStyle();
+        StyleConstants.setAlignment(whiteStyle,StyleConstants.ALIGN_CENTER);
+        StyleConstants.setForeground(whiteStyle, Color.white);
         
 
         this.text = text;
@@ -23,6 +29,7 @@ public class Card extends JTextPane {
         this.setEditable(false);
         this.setLogicalStyle(centerStyle);
         Font font = new Font("Verdana", Font.PLAIN, 40);
+        
         
         this.setHighlighter(null);
         
@@ -48,7 +55,8 @@ public class Card extends JTextPane {
 
         }
         else{ 
-            this.setForeground(Color.WHITE);
+            
+            this.setLogicalStyle(whiteStyle);
             this.setBackground(Color.BLACK);
         
         }
