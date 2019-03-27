@@ -18,7 +18,7 @@ public class CAHServer
     boolean spielstart = true;
     
     
-    int id = 0, zähler =1;
+    int id = 0, zähler =1, runden = 0;
     
     
 
@@ -34,33 +34,36 @@ public class CAHServer
                 reader = new BufferedReader(isReader);
             }catch(Exception ex) {ex.printStackTrace();}
         }
+        
+        public void nachrichtVerarbeiten(String nachricht){
+            if(nachricht.contains("*")){ 
+                nachricht = nachricht.replace("*","");
+                //nachricht.replace("*","");
+                System.out.println("Karte empfangen"+whiteList.get(Integer.parseInt(nachricht)).text);
+                spieler.get(clientNr).addKarte(Integer.parseInt(nachricht));}
+        }
 
         public void run(){
             String nachricht;
             try{
                if(spielstart){
-                    neueWhiteCards(3);
+                    neueWhiteCards(6);
                     neueBlackCard();
                     spielstart = false;
                 }
                 
                while(true){
                 
-                  System.out.println("Bin in der schleife");
-                  /*if(sock.isClosed() || !sock.isConnected() || sock.isOutputShutdown()|| sock == null){ 
+                  //System.out.println("Bin in der schleife");
+                  if(sock.isClosed() || !sock.isConnected()){ 
                         clientAusgabeStröme.remove(clientNr);
                         System.out.println("Ausgelogged: "+clientNr);
                         return;
-                    }*/
+                    }
                     //nachricht = reader.readLine();
-                    System.out.println("Bin in der schleife 2" + reader);
-                  if((nachricht = reader.readLine())!=null)System.out.println("Jemand will senden"+nachricht);
-                  
-                    
-                    
-                    
-                   
-                }
+                    //System.out.println("Bin in der schleife 2" + reader);
+                  if((nachricht = reader.readLine())!=null) nachrichtVerarbeiten(nachricht);
+                  }
                 
                
             }catch(Exception ex) {ex.printStackTrace();}
@@ -74,6 +77,23 @@ public class CAHServer
         loadBlackCards("blackcards.txt");
         los();
     }
+    
+    public void spielerKartenZurücksetzen(){
+        for(int i=0; i<spieler.size(); i++){
+            
+            spieler.get(i).clearKarten();
+        }
+    }
+    
+    public void neueRunde(){
+        spieler.get(runden%spieler.size()).cardSzar = true;
+        for(int i=0; i<spieler.size(); i++){
+            
+        }
+        neueWhiteCards(1);
+        neueBlackCard();
+        runden++;
+        }
 
     public void los(){
         clientAusgabeStröme = new ArrayList();
@@ -88,9 +108,10 @@ public class CAHServer
                 spieler.add(new Spieler(zähler));
                 zähler++;
                 
-                //ClientHandler c = new ClientHandler(clientSocket);
-                //c.clientNr = clientAusgabeStröme.size()-1;
-                Thread t = new Thread(new ClientHandler(clientSocket));
+                ClientHandler c = new ClientHandler(clientSocket);
+                c.clientNr = clientAusgabeStröme.size()-1;
+                spieler.add(new Spieler(c.clientNr));
+                Thread t = new Thread(c);
                 
                 t.start();
                 System.out.println("habe eine Verbindung");
@@ -141,8 +162,8 @@ public class CAHServer
     
     public void neueBlackCard(){
         Iterator it = clientAusgabeStröme.iterator();
-         int zufallsZahl = (int) (Math.random()*blackList.size());
-         while(it.hasNext()){
+        int zufallsZahl = (int) (Math.random()*blackList.size());
+        while(it.hasNext()){
             try{
                 PrintWriter writer = (PrintWriter) it.next();
                

@@ -39,9 +39,9 @@ public class CardsAgainstHumanityClient extends JFrame
             this.addMouseListener(new MouseAdapter(){
                     public void mouseClicked(MouseEvent e) {
                         Integer[] selected = getSelected();
-
                         for(int i=0; i<selected.length; i++){
-                            writer.println(""+selected[i]);
+                            writer.println("*"+selected[i]);
+                            
                         }
                         writer.flush();
 
@@ -100,8 +100,10 @@ public class CardsAgainstHumanityClient extends JFrame
     public Integer[] getSelected(){
         ArrayList<Integer> select = new ArrayList<Integer>();
         for(int i=0; i<cards.length; i++){
-            if(cards[i]!=null && cards[i].selected ) select.add(cards[i].id);
-
+            if(cards[i]!=null && cards[i].selected ){ 
+                select.add(cards[i].id);
+                cards[i] = null;
+            }
         }
         Integer[] selected = select.toArray(new Integer[select.size()]);
         return selected;
