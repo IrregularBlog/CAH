@@ -14,8 +14,11 @@ public class CAHServer
     ArrayList clientAusgabeStröme;
     ArrayList <Card> whiteList = null;
     ArrayList <Card> blackList = null;
+    ArrayList <Spieler> spieler = new ArrayList <Spieler>();
+    boolean spielstart = true;
     
-    int id = 0, verteiler =1;
+    
+    int id = 0, zähler =1;
     
     
 
@@ -35,23 +38,23 @@ public class CAHServer
         public void run(){
             String nachricht;
             try{
-                
-                if(verteiler%2 ==0 ){
-                    kartenVerteilen(3);
+               if(spielstart){
+                    neueWhiteCards(3);
                     neueBlackCard();
                 }
-                while(true){
+                
+               while(true){
                     if(sock.isConnected()){ 
-                        verteiler++;
                         clientAusgabeStröme.remove(clientNr);
                     }
+                    if((nachricht = reader.readLine()) != null){
+                        System.out.println("Jemand will senden");
+                    }
+                    
                     break;
                 }
-                /*while((nachricht = reader.readLine()) != null){
-                    System.out.println("gelesen: "+nachricht);
-                    
-                    //esAllenWeitersagen(nachricht);
-                }*/
+                
+               
             }catch(Exception ex) {ex.printStackTrace();}
         }
 
@@ -73,7 +76,9 @@ public class CAHServer
                 Socket clientSocket = serverSock.accept();
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
                 clientAusgabeStröme.add(writer);
-                verteiler++;
+                spieler.add(new Spieler(zähler));
+                zähler++;
+                
                 ClientHandler c =new ClientHandler(clientSocket);
                 c.clientNr = clientAusgabeStröme.size()-1;
                 Thread t = new Thread(c);
@@ -102,7 +107,7 @@ public class CAHServer
         }
     }
     
-    public void kartenVerteilen(int wieViel){
+    public void neueWhiteCards(int wieViel){
          Iterator it = clientAusgabeStröme.iterator();
          
          ArrayList<Card> whiteListD = null;
