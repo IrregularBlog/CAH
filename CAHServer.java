@@ -51,7 +51,8 @@ public class CAHServer
                     neueRunde();
                 }
             }
-            if(nachricht.contains("/spieler")){
+            else if(nachricht.contains("p")){
+                
                 spielerSenden(clientNr);
             }
 
@@ -88,18 +89,21 @@ public class CAHServer
     {
         loadCards("whitecards.txt");
         loadBlackCards("blackcards.txt");
+        System.out.println("Loaded cards");
         los();
     }
     
     public void spielerSenden(int clientNr){
+        
         PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(clientNr);
-                System.out.println("Jetzt kommen die Spieler");
-                for(int i=0; i<spieler.size(); i++){
+        System.out.println("Hab keine PRo");
+        for(int i=0; i<spieler.size(); i++){
                     
-                    if(i<(spieler.size()-1))writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"''");
-                    else writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"''");
+                    if(i<(spieler.size()-1))writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"=");
+                    else writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte);
                 }
-                writer.flush();
+        writer.flush();
+        
     }
 
     public Spieler werHatDieKarteGespielt(int id){
@@ -132,6 +136,7 @@ public class CAHServer
     }
 
     public void neueRunde(){
+       
         spielerKartenZurücksetzen();
         neueWhiteCards(1);
         neueBlackCard();
@@ -149,6 +154,7 @@ public class CAHServer
 
         try{
             ServerSocket serverSock = new ServerSocket(5000);
+            System.out.println("Serversocket steht");
             while(true){
                 Socket clientSocket = serverSock.accept();
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
@@ -159,12 +165,16 @@ public class CAHServer
                 
 
                 ClientHandler c = new ClientHandler(clientSocket);
+                
                 c.clientNr = clientAusgabeStröme.size()-1;
                 spieler.add(new Spieler(c.clientNr));
-                spielerSenden(c.clientNr);
+                
+                
                 Thread t = new Thread(c);
 
                 t.start();
+                
+                
                 System.out.println("habe eine Verbindung");
 
             }

@@ -124,10 +124,6 @@ public class CardsAgainstHumanityClient extends JFrame
         
     }
 
-    public void updateSpieler(){
-        writer.println("/spieler");
-        writer.flush();
-    }
 
 
     public Integer[] getSelected(){
@@ -171,6 +167,7 @@ public class CardsAgainstHumanityClient extends JFrame
         sender = new MyButton("Senden",writer);
         jpnl[1].add(sender);
         jpnl[1].add(spielerListe);
+        
 
         spielerListe.setLineWrap(true);
         spielerListe.setWrapStyleWord(true);
@@ -187,7 +184,9 @@ public class CardsAgainstHumanityClient extends JFrame
             int id = Integer.parseInt(temp[0]);
             String text = temp[1];
             sender.setText("Senden");
-
+             writer.println("p");
+             writer.flush();
+            System.out.println("Anfrage geschickt");
             for(int i=0; i<cards.length; i++){
                 if(cards[i] == null){ 
                     cards[i] = new Card(id,0, text); 
@@ -200,7 +199,10 @@ public class CardsAgainstHumanityClient extends JFrame
             }
             
             amZug = true;
-            updateSpieler();
+            
+   
+       
+    
 
             //Whitecard wird ersetzt
         }
@@ -220,9 +222,10 @@ public class CardsAgainstHumanityClient extends JFrame
             sender.setText("CardSzar");
 
         }
-        else if(nachricht.contains("''")){
-            String[] temp = nachricht.split("''");
-            spielerListe.setText("Test");
+        else if(nachricht.contains("=")){
+            
+            String[] temp = nachricht.split("=");
+            spielerListe.setText(nachricht);
             spieler.clear();
             for(int i=0; i<temp.length; i++){
                 String[] temp2 = temp[i].split("%");
@@ -230,6 +233,8 @@ public class CardsAgainstHumanityClient extends JFrame
                 spieler.get(spieler.size()-1).punkte = Integer.parseInt(temp2[1]);
                 spielerListe.append(spieler.get(i).spielerID+": "+spieler.get(i).punkte+ "\n");
             }
+            
+            
         }
         else if(nachricht.contains("<")){
             String[] temp = nachricht.split("<");
