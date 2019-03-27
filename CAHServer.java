@@ -41,17 +41,25 @@ public class CAHServer
                if(spielstart){
                     neueWhiteCards(3);
                     neueBlackCard();
+                    spielstart = false;
                 }
                 
                while(true){
-                    if(sock.isConnected()){ 
+                
+                  System.out.println("Bin in der schleife");
+                  /*if(sock.isClosed() || !sock.isConnected() || sock.isOutputShutdown()|| sock == null){ 
                         clientAusgabeStröme.remove(clientNr);
-                    }
-                    if((nachricht = reader.readLine()) != null){
-                        System.out.println("Jemand will senden");
-                    }
+                        System.out.println("Ausgelogged: "+clientNr);
+                        return;
+                    }*/
+                    //nachricht = reader.readLine();
+                    System.out.println("Bin in der schleife 2" + reader);
+                  if((nachricht = reader.readLine())!=null)System.out.println("Jemand will senden"+nachricht);
+                  
                     
-                    break;
+                    
+                    
+                   
                 }
                 
                
@@ -75,13 +83,14 @@ public class CAHServer
             while(true){
                 Socket clientSocket = serverSock.accept();
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
+                
                 clientAusgabeStröme.add(writer);
                 spieler.add(new Spieler(zähler));
                 zähler++;
                 
-                ClientHandler c =new ClientHandler(clientSocket);
-                c.clientNr = clientAusgabeStröme.size()-1;
-                Thread t = new Thread(c);
+                //ClientHandler c = new ClientHandler(clientSocket);
+                //c.clientNr = clientAusgabeStröme.size()-1;
+                Thread t = new Thread(new ClientHandler(clientSocket));
                 
                 t.start();
                 System.out.println("habe eine Verbindung");
@@ -164,8 +173,6 @@ public class CAHServer
             
             readerz.close();
             
-            
-        
         }catch(Exception ex){}
     }
 
@@ -176,8 +183,6 @@ public class CAHServer
             BufferedReader readerz = new BufferedReader(new FileReader(daten));
             String s = "";
             String in = "";
-            
-            
             
             whiteList = new ArrayList<Card>();
             
@@ -196,10 +201,7 @@ public class CAHServer
              }
             
             readerz.close();
-            
-            
-        
-        }catch(Exception ex){}
+            }catch(Exception ex){}
     }
     
     public void main(String[] args){

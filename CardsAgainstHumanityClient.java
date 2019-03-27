@@ -2,11 +2,12 @@ import javax.swing.*;
 import java.net.*;
 import java.awt.*;
 import java.util.*;
-import javax.swing.*;
 import java.net.*;
-import java.awt.*;
 import java.util.*;
 import java.io.*;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyleConstants;
+import java.awt.event.*;
 
 public class CardsAgainstHumanityClient extends JFrame
 {
@@ -17,10 +18,50 @@ public class CardsAgainstHumanityClient extends JFrame
     JPanel[] jpnl = new JPanel[2];
     BufferedReader reader;
     PrintWriter writer;
+    MyButton sender = null;
     int leer = 0;
 
     Socket sock;
 
+    public class MyButton extends JLabel {
+        String text = "";
+        PrintWriter writer;
+        Card selected = null;
+
+        public MyButton(String text, PrintWriter writer){
+            this.text = text;
+            this.writer = writer;
+            this.setText(text);
+            Font font = new Font("Verdana", Font.PLAIN, 40);
+            this.setFont( font);
+            this.setOpaque(true);
+
+            this.addMouseListener(new MouseAdapter(){
+                    public void mouseClicked(MouseEvent e) {
+                        Integer[] selected = getSelected();
+
+                        for(int i=0; i<selected.length; i++){
+                            writer.println(""+selected[i]);
+                        }
+                        writer.flush();
+
+                        setBackground(Color.YELLOW);
+                        setForeground(Color.white);
+                        paintComponent(getGraphics());
+                        try{
+                            Thread.sleep(300);}catch(Exception ex){};
+                        setBackground(Color.GRAY);
+                        setForeground(Color.black);
+
+                    }                
+                });
+
+        }
+        public void setSelected(Card c){
+            selected = c;
+        }
+
+    }
     public CardsAgainstHumanityClient()
     {
         super();
@@ -33,13 +74,11 @@ public class CardsAgainstHumanityClient extends JFrame
         setLayout(new GridLayout(2,1)); 
         jpnl[0].setLayout(new BorderLayout());
         jpnl[1].setLayout(new GridLayout(1,cards.length+1)/*new FlowLayout()*/);
-        
+
         add(jpnl[0]);
         add(jpnl[1]);
 
         netzwerkEinrichten();
-        Thread readerThread = new Thread(new EingehendReader());
-        readerThread.start();
 
         setVisible(true);
     }
@@ -51,11 +90,21 @@ public class CardsAgainstHumanityClient extends JFrame
                 jpnl[1].add(cards[i]);
             }
         }
-        
+
     }
-    
+
     public void updateMyBlackCard(){
         jpnl[0].add(blackCard);
+    }
+
+    public Integer[] getSelected(){
+        ArrayList<Integer> select = new ArrayList<Integer>();
+        for(int i=0; i<cards.length; i++){
+            if(cards[i]!=null && cards[i].selected ) select.add(cards[i].id);
+
+        }
+        Integer[] selected = select.toArray(new Integer[select.size()]);
+        return selected;
     }
 
     private void netzwerkEinrichten(){
@@ -70,8 +119,12 @@ public class CardsAgainstHumanityClient extends JFrame
         }catch(Exception ex){
             ex.printStackTrace();
         }
-        
-        jpnl[1].add(new MyButton("Senden", writer));
+
+        Thread readerThread = new Thread(new EingehendReader());
+        readerThread.start();
+
+        sender = new MyButton("Senden",writer);
+        jpnl[1].add(sender);
     }
 
     public void nachrichtVerarbeiten(String nachricht){
@@ -103,7 +156,7 @@ public class CardsAgainstHumanityClient extends JFrame
 
             blackCard = new Card(id,1, text);
             updateMyBlackCard();
-            
+
             //Blackcard wird ersetzt
         }
         else if(nachricht.contains("\\#:")){
@@ -123,6 +176,7 @@ public class CardsAgainstHumanityClient extends JFrame
         }
 
     }
+
     public void log(Object e){System.out.println(""+e);}
     public class EingehendReader implements Runnable{
         public void run(){
@@ -142,7 +196,5 @@ public class CardsAgainstHumanityClient extends JFrame
         }
     }
 
-
     //Karte hat ID 
-
 }
