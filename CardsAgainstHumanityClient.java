@@ -20,7 +20,7 @@ public class CardsAgainstHumanityClient extends JFrame
     PrintWriter writer;
     MyButton sender = null;
     JTextArea spielerListe = new JTextArea();
-    ArrayList<Spieler> spieler = null;
+    ArrayList<Spieler> spieler = new ArrayList<Spieler>();
     int leer = 0;
     boolean cardSzar = false, amZug = true;
 

@@ -8,7 +8,7 @@ import java.awt.*;
 import java.util.*;
 import java.io.*;
 
-public class CAHServer
+public class CAHServer implements Runnable
 {
 
     ArrayList clientAusgabeStröme;
@@ -16,6 +16,7 @@ public class CAHServer
     ArrayList <Card> blackList = null;
     ArrayList <Spieler> spieler = new ArrayList <Spieler>();
     boolean spielstart = true, cardSzarDran = false;
+    Thread serverThread = new Thread();
 
     int id = 0, zähler =0, runden = 0;
     public class ClientHandler implements Runnable{
@@ -84,13 +85,19 @@ public class CAHServer
         }
 
     }
+    
+    public void run(){
+        los();
+    }
 
     public CAHServer()
     {
+        
         loadCards("whitecards.txt");
         loadBlackCards("blackcards.txt");
         System.out.println("Loaded cards");
-        los();
+        serverThread.start();
+        
     }
     
     public void spielerSenden(int clientNr){
