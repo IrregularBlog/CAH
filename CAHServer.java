@@ -11,12 +11,12 @@ import java.io.*;
 public class CAHServer implements Runnable
 {
 
-    ArrayList clientAusgabeStröme;
+    ArrayList <PrintWriter>clientAusgabeStröme;
     ArrayList <Card> whiteList = null;
     ArrayList <Card> blackList = null;
     ArrayList <Spieler> spieler = new ArrayList <Spieler>();
     boolean spielstart = true, cardSzarDran = false;
-    Thread serverThread = new Thread();
+    Thread serverThread;
 
     int id = 0, zähler =0, runden = 0;
     public class ClientHandler implements Runnable{
@@ -53,8 +53,7 @@ public class CAHServer implements Runnable
                 }
             }
             else if(nachricht.contains("p")){
-                
-                spielerSenden(clientNr);
+                //spielerSenden(clientNr);
             }
 
         }
@@ -65,7 +64,7 @@ public class CAHServer implements Runnable
                 neueWhiteCardsPersonal(3, clientNr);
                 neueBlackCard();
                 
-                if(clientNr == 1) neueRunde();
+                if(clientNr == 2) neueRunde();
                 
 
                 while(true){
@@ -87,77 +86,7 @@ public class CAHServer implements Runnable
     }
     
     public void run(){
-        los();
-    }
-
-    public CAHServer()
-    {
         
-        loadCards("whitecards.txt");
-        loadBlackCards("blackcards.txt");
-        System.out.println("Loaded cards");
-        serverThread.start();
-        
-    }
-    
-    public void spielerSenden(int clientNr){
-        
-        PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(clientNr);
-        System.out.println("Hab keine PRo");
-        for(int i=0; i<spieler.size(); i++){
-                    
-                    if(i<(spieler.size()-1))writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"=");
-                    else writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte);
-                }
-        writer.flush();
-        
-    }
-
-    public Spieler werHatDieKarteGespielt(int id){
-        for(int i=0; i<spieler.size(); i++){
-            for(int j=0; j<spieler.get(i).karte.size(); j++){
-                if(spieler.get(i).karte.get(j) == id) return spieler.get(i);
-
-            }
-        }
-        return null;
-    }
-
-    public boolean alleSpielerBisAufCS(){
-        boolean fertig = true;
-        for(int i=0; i<spieler.size(); i++){
-            if(spieler.get(i).karte.size() == 0 && !spieler.get(i).cardSzar){ fertig = false;
-             System.out.println("Abbruch: "+spieler.get(i).spielerID+"hat nun: "+spieler.get(i).karte.size()+" Karten");
-            }
-            
-        }
-        
-        return fertig;
-    }
-
-    public void spielerKartenZurücksetzen(){
-        for(int i=0; i<spieler.size(); i++){
-
-            spieler.get(i).clearKarten();
-        }
-    }
-
-    public void neueRunde(){
-       
-        spielerKartenZurücksetzen();
-        neueWhiteCards(1);
-        neueBlackCard();
-        spieler.get(runden%spieler.size()).cardSzar = true;
-        
-        PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(runden%spieler.size());
-        writer.println("::");
-        writer.flush();
-        
-        runden++;
-    }
-
-    public void los(){
-        clientAusgabeStröme = new ArrayList();
 
         try{
             ServerSocket serverSock = new ServerSocket(5000);
@@ -181,6 +110,11 @@ public class CAHServer implements Runnable
 
                 t.start();
                 
+                for(int i=1; i<spieler.size(); i++){
+                System.out.println("Neuer spieler");
+                spielerSenden(spieler.get(i).spielerID);
+              }
+                
                 
                 System.out.println("habe eine Verbindung");
 
@@ -188,6 +122,89 @@ public class CAHServer implements Runnable
         }catch(Exception ex){
             ex.printStackTrace();
         }
+    }
+
+    public CAHServer()
+    {
+        
+        clientAusgabeStröme = new ArrayList();
+        serverThread = new Thread(this);
+        loadCards("whitecards.txt");
+        loadBlackCards("blackcards.txt");
+        System.out.println("Loaded cards");
+        serverThread.start();
+        
+    }
+    
+    public void spielerSenden(int clientNr){
+        
+        PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(clientNr);
+        System.out.println("Hab keine PRo");
+        writer.println("");
+        writer.flush();
+        for(int i=0; i<spieler.size(); i++){
+                    
+                    if(i<(spieler.size()-1))writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"=");
+                    else writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte);
+                }
+        writer.flush();
+        writer.println("");
+        writer.flush();
+        
+    }
+
+    public Spieler werHatDieKarteGespielt(int id){
+        for(int i=0; i<spieler.size(); i++){
+            for(int j=0; j<spieler.get(i).karte.size(); j++){
+                if(spieler.get(i).karte.get(j) == id) return spieler.get(i);
+
+            }
+        }
+        return null;
+    }
+
+    public boolean alleSpielerBisAufCS(){
+        boolean fertig = true;
+        for(int i=0; i<spieler.size(); i++){
+            if(spieler.get(i).karte.size() == 0 && !spieler.get(i).cardSzar){ 
+                fertig = false;
+            }
+         }
+        
+        return fertig;
+    }
+
+    public void spielerKartenZurücksetzen(){
+        for(int i=0; i<spieler.size(); i++){
+
+            spieler.get(i).clearKarten();
+        }
+    }
+
+    public void neueRunde(){
+       
+        spielerKartenZurücksetzen();
+        neueWhiteCards(1);
+        
+        spieler.get(runden%spieler.size()).cardSzar = true;
+        PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(runden%spieler.size());
+        
+        writer.println(":");
+        writer.flush();
+        
+        
+        neueBlackCard();
+        
+        
+        
+        
+        
+        
+        runden++;
+    }
+
+    public void los(){
+        
     }
 
     public void esAllenWeitersagen(String nachricht){
@@ -204,17 +221,22 @@ public class CAHServer implements Runnable
             }
         }
     }
+    
+    public void ausgabeStröme(){
+        for(PrintWriter w : clientAusgabeStröme){
+        System.out.println(w);
+    }
+    }
 
     public void kartenDerAnderen(){
-        Iterator it = clientAusgabeStröme.iterator();
-
-        
-        while(it.hasNext()){
+            for(PrintWriter writer : clientAusgabeStröme){
+            
             try{
-                PrintWriter writer = (PrintWriter) it.next();
+                
                 for(int i=0; i<spieler.size(); i++){
                     for(int j=0; j<spieler.get(i).karte.size(); j++){
                         whiteList.get(spieler.get(i).karte.get(j)).sendenZuAnderen(writer);
+                        System.out.println("Karten der Anderen|| zu: "+clientAusgabeStröme.indexOf(writer)+" Karte:"+whiteList.get(spieler.get(i).karte.get(j)));
                     }
                 }
 
@@ -286,6 +308,7 @@ public class CAHServer implements Runnable
                 in += s;
                 Card tempCard = new Card(id,1,s);
                 blackList.add(tempCard);
+                System.out.println("Neue Blackcard: "+blackList.get(blackList.size()-1).text);
                 id++;
             }
 

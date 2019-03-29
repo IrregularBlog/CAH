@@ -53,7 +53,6 @@ public class CardsAgainstHumanityClient extends JFrame
                             }
                             writer.flush();
 
-
                             setBackground(Color.YELLOW);
                             setForeground(Color.white);
                             paintComponent(getGraphics());
@@ -64,6 +63,7 @@ public class CardsAgainstHumanityClient extends JFrame
 
                             amZug = false;
                         }
+                        
                     }                
                 });
 
@@ -110,20 +110,19 @@ public class CardsAgainstHumanityClient extends JFrame
     }
 
     public void updateMyBlackCard(){
-        
+
         jpnl[0].add(blackCard, "West");
     }
 
     public void updateCardsOther(){
         jpnl[2].removeAll();
-        System.out.println("update cards other");
-        
+        if(cardSzar)System.out.println("update cards other");
+
         for(int i=0; i<cardsOther.size(); i++){
             jpnl[2].add(cardsOther.get(i));
         }
-        
-    }
 
+    }
 
 
     public Integer[] getSelected(){
@@ -133,6 +132,7 @@ public class CardsAgainstHumanityClient extends JFrame
                 if(cardsOther.get(i)!=null && cardsOther.get(i).selected){
                     select.add(cardsOther.get(i).id);
                     cardsOther.remove(i);
+
                 }
 
             }}
@@ -140,7 +140,9 @@ public class CardsAgainstHumanityClient extends JFrame
             for(int i=0; i<cards.length; i++){
                 if(i<cards.length && cards[i]!=null && cards[i].selected){ 
                     select.add(cards[i].id);
+                    jpnl[1].remove(cards[i]);
                     cards[i] = null;
+
                 }
             }
         }
@@ -167,7 +169,6 @@ public class CardsAgainstHumanityClient extends JFrame
         sender = new MyButton("Senden",writer);
         jpnl[1].add(sender);
         jpnl[1].add(spielerListe);
-        
 
         spielerListe.setLineWrap(true);
         spielerListe.setWrapStyleWord(true);
@@ -177,6 +178,7 @@ public class CardsAgainstHumanityClient extends JFrame
 
     public void nachrichtVerarbeiten(String nachricht){
         int it=0;
+        System.out.println("Nachricht bekommen"+nachricht);
 
         if(nachricht.contains("°")){
 
@@ -184,9 +186,12 @@ public class CardsAgainstHumanityClient extends JFrame
             int id = Integer.parseInt(temp[0]);
             String text = temp[1];
             sender.setText("Senden");
-             writer.println("p");
-             writer.flush();
+            writer.println("p");
+            writer.flush();
             System.out.println("Anfrage geschickt");
+            amZug = true;
+            
+            //cardSzar = false;
             for(int i=0; i<cards.length; i++){
                 if(cards[i] == null){ 
                     cards[i] = new Card(id,0, text); 
@@ -194,21 +199,21 @@ public class CardsAgainstHumanityClient extends JFrame
                     updateMyWhitecards();
                     return;
                 }
-                if(cardSzar) cards[i].selectable = false;
-                else cards[i].selectable = true;
             }
+
+            // for(Card c: cards){
+                // c.selectable = true;
+            // }
+
             
-            amZug = true;
-            
-   
+
        
-    
 
             //Whitecard wird ersetzt
         }
-        else if(nachricht.contains("||")){
+        else if(nachricht.contains("±")){
 
-            String[] temp = nachricht.split("||");
+            String[] temp = nachricht.split("±");
             int id = Integer.parseInt(temp[0]);
             String text = temp[1];
 
@@ -217,36 +222,40 @@ public class CardsAgainstHumanityClient extends JFrame
 
             //Blackcard wird ersetzt
         }
-        else if(nachricht.contains("::")){
+        else if(nachricht.equals(":")){
             cardSzar = true;
             sender.setText("CardSzar");
+            // for(Card c: cards){
+                // c.selectable = false;
+            // }
 
         }
         else if(nachricht.contains("=")){
-            
+
             String[] temp = nachricht.split("=");
-            spielerListe.setText(nachricht);
+
             spieler.clear();
+            spielerListe.setText("");
             for(int i=0; i<temp.length; i++){
                 String[] temp2 = temp[i].split("%");
                 spieler.add(new Spieler(Integer.parseInt(temp2[0])));
                 spieler.get(spieler.size()-1).punkte = Integer.parseInt(temp2[1]);
                 spielerListe.append(spieler.get(i).spielerID+": "+spieler.get(i).punkte+ "\n");
             }
-            
-            
+
         }
         else if(nachricht.contains("<")){
+            
             String[] temp = nachricht.split("<");
-            
+
             int id = Integer.parseInt(temp[0]);
-            
+
             String text = temp[1];
-            
+
             cardsOther.add( new Card(id,0,text));
-            System.out.println("Ich bin cardSzar: "+cardSzar);
-            if(!cardSzar) cardsOther.get(cardsOther.size()-1).selectable = false;
-            else cardsOther.get(cardsOther.size()-1).selectable = true;
+            if(cardSzar)System.out.println("Als CardSzar karte der anderen bekommen: "+cardsOther.get(cardsOther.size()-1).text);
+            //if(!cardSzar) cardsOther.get(cardsOther.size()-1).selectable = false;
+            //else cardsOther.get(cardsOther.size()-1).selectable = true;
             updateCardsOther();
         }
 

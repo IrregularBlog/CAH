@@ -69,14 +69,13 @@ public class Card extends JTextPane {
     public void senden(PrintWriter writer){
         System.out.println("Karte gesendet: "+text);
         if(art == 0)writer.println(id+"°"+text);
-        if(art == 1)writer.println(id+"||"+text);
+        if(art == 1)writer.println(id+"±"+text);
         writer.flush();
     }
     
      public void sendenZuAnderen(PrintWriter writer){
         
         if(art == 0)writer.println(id+"<"+text);
-        //if(art == 1)writer.println(id+"||"+text);
         writer.flush();
     }
 
