@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.net.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import java.net.*;
@@ -8,14 +9,14 @@ import java.awt.*;
 import java.util.*;
 import java.io.*;
 
-public class CAHServer  extends JFrame implements Runnable
+public class CAHServer  extends JFrame implements Runnable, KeyListener
 {
 
     ArrayList <PrintWriter>clientAusgabeStröme;
     ArrayList <Card> whiteList = null;
     ArrayList <Card> blackList = null;
     ArrayList <Spieler> spieler = new ArrayList <Spieler>();
-    JTextField jtf = new JTextField();
+    JTextArea jtf = new JTextArea();
     boolean spielstart = true, cardSzarDran = false;
     Thread serverThread;
 
@@ -122,17 +123,23 @@ public class CAHServer  extends JFrame implements Runnable
         setBounds(0,0,200,300);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new GridLayout(1,1));
-        add(jtf);
+        
+        JScrollPane scrollPane = new JScrollPane(jtf); 
+        scrollPane.setVisible(true);
+        
+        
+        add(scrollPane);
         jtf.setText("Schließen zum schließen");
+        jtf.addKeyListener(this);
         clientAusgabeStröme = new ArrayList();
         serverThread = new Thread(this);
 
         try{
-            
+
             DownloadWhitecards.main(null);
             DownloadBlackcards.main(null);
         }catch(Throwable thrwo){
-        
+
         }
         loadCards("whitecards.txt");
         loadBlackCards("blackcards.txt");
@@ -197,12 +204,10 @@ public class CAHServer  extends JFrame implements Runnable
 
     public void neueRunde(){
 
-        
         spielerKartenZurücksetzen();
         startSignal();
         neueWhiteCards(1);
 
-        
         for(Spieler p: spieler){
             p.cardSzar = false;
         }
@@ -212,13 +217,11 @@ public class CAHServer  extends JFrame implements Runnable
         writer.println(":");
         writer.flush();
 
-
         neueBlackCard();
         for(int i=0; i<clientAusgabeStröme.size(); i++){
             spielerSenden(i);
         }
 
-        
         runden++;
     }
 
@@ -286,7 +289,7 @@ public class CAHServer  extends JFrame implements Runnable
 
         while(it.hasNext()){
             try{
-                
+
                 PrintWriter writer = (PrintWriter) it.next();
 
                 for(int i=0; i<wieViel; i++){
@@ -327,13 +330,13 @@ public class CAHServer  extends JFrame implements Runnable
             blackList = new ArrayList<Card>();
 
             while (!(s=readerz.readLine()).contentEquals("ende") ) {
-                
+
                 if(!s.isEmpty() && !s.isBlank()){
                     in += s;
-                Card tempCard = new Card(id,1,s);
-                blackList.add(tempCard);
-                System.out.println("Neue Blackcard: "+blackList.get(blackList.size()-1).text);
-                id++;}
+                    Card tempCard = new Card(id,1,s);
+                    blackList.add(tempCard);
+                    System.out.println("Neue Blackcard: "+blackList.get(blackList.size()-1).text);
+                    id++;}
             }
 
             readerz.close();
@@ -350,7 +353,7 @@ public class CAHServer  extends JFrame implements Runnable
             String in = "";
 
             whiteList = new ArrayList<Card>();
-            
+
             while (!(s=readerz.readLine()).contentEquals("ende")) {
                 in += s;
                 if (blackList == null && !s.isEmpty() && !s.isBlank()){
@@ -363,12 +366,46 @@ public class CAHServer  extends JFrame implements Runnable
                     blackList.add(tempCard);
                     id++;
                 }
-                
+
             }
 
             readerz.close();
         }catch(Exception ex){}
     }
 
+    public void keyTyped(KeyEvent e) { 
+
+    } 
+
+    public void keyPressed(KeyEvent e) { 
+        if(e.getKeyCode() == KeyEvent.VK_ENTER){
+            if(jtf.getText().equals("/neue Runde")){
+                jtf.setText("Neue Runde startet");
+                try{Thread.sleep(200);}catch(Exception ex){}
+                jtf.setText("");
+                
+                neueRunde();
+            }
+            if(jtf.getText().contains("/give")&&jtf.getText().contains("whitecard")){
+                String[] s = jtf.getText().split(" ");
+                int s2 = Integer.parseInt(s[1]);
+                int anzahl = Integer.parseInt(s[2]);
+                neueWhiteCardsPersonal(anzahl, s2);
+                jtf.setText("Gave: "+s2+ "Anzahl: "+anzahl);
+            }
+            // if(jtf.getText().contains("/kick")){
+                // String[] s = jtf.getText().split(" ");
+                // int s2 = Integer.parseInt(s[2]);
+                // spieler.remove(s2);
+                // clientAusgabeStröme.remove(s2);
+                
+            // }
+
+        }
+    } 
+
+    public void keyReleased(KeyEvent e) { 
+
+    } 
 
 }

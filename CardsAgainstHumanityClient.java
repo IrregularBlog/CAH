@@ -12,7 +12,7 @@ import java.awt.event.*;
 public class CardsAgainstHumanityClient extends JFrame
 {
     
-    Card[] cards = new Card[8];
+    Card[] cards = new Card[10];
     Card blackCard = null;
     ArrayList<Card> cardsOther = new ArrayList<Card>();
     JPanel[] jpnl = new JPanel[4];
