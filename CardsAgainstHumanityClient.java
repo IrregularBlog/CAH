@@ -21,6 +21,8 @@ public class CardsAgainstHumanityClient extends JFrame
     MyButton sender = null;
     JTextArea spielerListe = new JTextArea();
     ArrayList<Spieler> spieler = new ArrayList<Spieler>();
+    String ip = "";
+    int port = 5000;
 
     
     int leer = 0;
@@ -108,6 +110,16 @@ public class CardsAgainstHumanityClient extends JFrame
         add(jpnl[1]);
         jpnl[0].add(jpnl[2],"Center");
 
+        
+        String s = (String)JOptionPane.showInputDialog(
+                    this,
+                    "Gib die IP Adresse ein\n",
+                    "IP Adresse",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    null,
+                    "IP Adresse");
+                    
         netzwerkEinrichten();
 
         setVisible(true);
@@ -170,7 +182,8 @@ public class CardsAgainstHumanityClient extends JFrame
     private void netzwerkEinrichten(){
         try{
             //sock = new Socket("195.202.41.170",5000);
-            sock = new Socket("127.0.0.1",5000);
+            //"127.0.0.1"
+            sock = new Socket(ip,5000);
             InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
             reader = new BufferedReader(streamReader);
             writer = new PrintWriter(sock.getOutputStream());
@@ -301,6 +314,11 @@ public class CardsAgainstHumanityClient extends JFrame
             }catch(Exception ex){
             }
         }
+    }
+    
+    public static void main(String[] args){
+        CardsAgainstHumanityClient c = new CardsAgainstHumanityClient();
+    
     }
 
     //Karte hat ID 

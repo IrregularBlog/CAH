@@ -67,7 +67,7 @@ public class CAHServer implements Runnable
                 neueWhiteCardsPersonal(3, clientNr);
                 
 
-                if(clientNr == 2) neueRunde();
+                if(clientNr >= 1) neueRunde();
 
                 while(true){
                     //System.out.println("Bin in der schleife");
@@ -358,7 +358,7 @@ public class CAHServer implements Runnable
     }
 
     public void main(String[] args){
-        //CAHServer server = new CAHServer();
+        CAHServer server = new CAHServer();
 
     }
 
