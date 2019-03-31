@@ -8,13 +8,14 @@ import java.awt.*;
 import java.util.*;
 import java.io.*;
 
-public class CAHServer implements Runnable
+public class CAHServer  extends JFrame implements Runnable
 {
 
     ArrayList <PrintWriter>clientAusgabeStröme;
     ArrayList <Card> whiteList = null;
     ArrayList <Card> blackList = null;
     ArrayList <Spieler> spieler = new ArrayList <Spieler>();
+    JTextField jtf = new JTextField();
     boolean spielstart = true, cardSzarDran = false;
     Thread serverThread;
 
@@ -64,11 +65,9 @@ public class CAHServer implements Runnable
         public void run(){
             String nachricht;
             try{
-                neueWhiteCardsPersonal(3, clientNr);
-                
+                neueWhiteCardsPersonal(7, clientNr);
 
                 if(clientNr >= 1) neueRunde();
-
                 while(true){
                     //System.out.println("Bin in der schleife");
                     if(sock.isClosed() || !sock.isConnected()){ 
@@ -119,13 +118,28 @@ public class CAHServer implements Runnable
 
     public CAHServer()
     {
-
+        super("CAH - Server");
+        setBounds(0,0,200,300);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new GridLayout(1,1));
+        add(jtf);
+        jtf.setText("Schließen zum schließen");
         clientAusgabeStröme = new ArrayList();
         serverThread = new Thread(this);
+
+        try{
+            
+            DownloadWhitecards.main(null);
+            DownloadBlackcards.main(null);
+        }catch(Throwable thrwo){
+        
+        }
         loadCards("whitecards.txt");
         loadBlackCards("blackcards.txt");
         System.out.println("Loaded cards");
         serverThread.start();
+
+        setVisible(true);
 
     }
 
@@ -184,12 +198,10 @@ public class CAHServer implements Runnable
     public void neueRunde(){
 
         
-        
         spielerKartenZurücksetzen();
         startSignal();
         neueWhiteCards(1);
-        
-        
+
         
         for(Spieler p: spieler){
             p.cardSzar = false;
@@ -199,16 +211,13 @@ public class CAHServer implements Runnable
         PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(runden%spieler.size());
         writer.println(":");
         writer.flush();
-        
-        
+
 
         neueBlackCard();
         for(int i=0; i<clientAusgabeStröme.size(); i++){
             spielerSenden(i);
         }
 
-        
-        
         
         runden++;
     }
@@ -277,6 +286,7 @@ public class CAHServer implements Runnable
 
         while(it.hasNext()){
             try{
+                
                 PrintWriter writer = (PrintWriter) it.next();
 
                 for(int i=0; i<wieViel; i++){
@@ -316,12 +326,14 @@ public class CAHServer implements Runnable
 
             blackList = new ArrayList<Card>();
 
-            while (!(s=readerz.readLine()).isEmpty()) {
-                in += s;
+            while (!(s=readerz.readLine()).contentEquals("ende") ) {
+                
+                if(!s.isEmpty() && !s.isBlank()){
+                    in += s;
                 Card tempCard = new Card(id,1,s);
                 blackList.add(tempCard);
                 System.out.println("Neue Blackcard: "+blackList.get(blackList.size()-1).text);
-                id++;
+                id++;}
             }
 
             readerz.close();
@@ -338,28 +350,25 @@ public class CAHServer implements Runnable
             String in = "";
 
             whiteList = new ArrayList<Card>();
-
-            while (!(s=readerz.readLine()).isEmpty()) {
+            
+            while (!(s=readerz.readLine()).contentEquals("ende")) {
                 in += s;
-                if (blackList == null){
-
+                if (blackList == null && !s.isEmpty() && !s.isBlank()){
                     Card tempCard = new Card(id,0,s);
                     whiteList.add(tempCard);
                     System.out.println("Server hat nun: "+tempCard.text);
+                    id++;
                 }
-                else{ Card tempCard = new Card(id,1,s);
+                else if(!s.isEmpty() && !s.isBlank()){ Card tempCard = new Card(id,1,s);
                     blackList.add(tempCard);
+                    id++;
                 }
-                id++;
+                
             }
 
             readerz.close();
         }catch(Exception ex){}
     }
 
-    public void main(String[] args){
-        CAHServer server = new CAHServer();
-
-    }
 
 }

@@ -11,11 +11,11 @@ import java.awt.event.*;
 
 public class CardsAgainstHumanityClient extends JFrame
 {
-
+    
     Card[] cards = new Card[8];
     Card blackCard = null;
     ArrayList<Card> cardsOther = new ArrayList<Card>();
-    JPanel[] jpnl = new JPanel[3];
+    JPanel[] jpnl = new JPanel[4];
     BufferedReader reader;
     PrintWriter writer;
     MyButton sender = null;
@@ -39,7 +39,7 @@ public class CardsAgainstHumanityClient extends JFrame
             this.text = text;
             this.writer = writer;
             this.setText(text);
-            Font font = new Font("Verdana", Font.PLAIN, 40);
+            Font font = new Font("Verdana", Font.PLAIN, 20);
             this.setFont( font);
             this.setOpaque(true);
 
@@ -51,7 +51,7 @@ public class CardsAgainstHumanityClient extends JFrame
                             System.out.println("gucke nach selected");
                             Integer[] selected = getSelected();
                             //System.out.println("selected u.A.: "+selected[0]);
-                            if (selected.length == 0) dumm = true;
+                            if (selected.length != 1) dumm = true;
                             
                             if(!dumm){
                                 for(int i=0; i<selected.length; i++){
@@ -73,7 +73,7 @@ public class CardsAgainstHumanityClient extends JFrame
                             }
                             else{
                                 JOptionPane.showMessageDialog(null,
-                                    "Du hast das Spiel nicht verstanden, als CardSzar kannst du keine Karten spielen.");
+                                    "Du hast das Spiel nicht verstanden, als CardSzar kannst du keine Karten spielen und sonst nie mehr als eine Karte");
                                     dumm = false;
                             }
 
@@ -94,21 +94,26 @@ public class CardsAgainstHumanityClient extends JFrame
     public CardsAgainstHumanityClient()
     {
         super();
-        setBounds(600,400,600,400);
+        setBounds(600,400,800,400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         for(int i=0; i<jpnl.length; i++){
             jpnl[i] = new JPanel();
         }
 
         setLayout(new GridLayout(2,1)); 
-        jpnl[0].setLayout(new BorderLayout());
+        jpnl[0].setLayout(new GridLayout(1,2));
         jpnl[1].setLayout(new GridLayout(1,cards.length+2)/*new FlowLayout()*/);
-        jpnl[2].setLayout(new FlowLayout());
+        jpnl[2].setLayout(new BoxLayout(jpnl[2], BoxLayout.Y_AXIS));
         jpnl[2].setBackground(Color.white);
 
         add(jpnl[0]);
         add(jpnl[1]);
-        jpnl[0].add(jpnl[2],"Center");
+        jpnl[0].add(jpnl[2]);
+        jpnl[0].add(jpnl[3]);
+        
+        jpnl[3].setLayout(new BorderLayout());
+        
 
         
         String s = (String)JOptionPane.showInputDialog(
@@ -137,8 +142,8 @@ public class CardsAgainstHumanityClient extends JFrame
     }
 
     public void updateMyBlackCard(){
-
-        jpnl[0].add(blackCard, "West");
+        jpnl[3].removeAll();
+        jpnl[3].add(blackCard, "Center");
     }
 
     public void updateCardsOther(){
