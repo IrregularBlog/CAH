@@ -10,8 +10,9 @@ public class Card extends JTextPane {
     String text = "";
     int id;
     int art;
+    
     boolean selected = false;
-    boolean selectable = true;
+    boolean usable = true;
     
 
     public Card(int id,int art, String text){
@@ -42,11 +43,11 @@ public class Card extends JTextPane {
 
         this.addMouseListener(new MouseAdapter(){
                 public void mouseClicked(MouseEvent e) {
-                    if(selectable){
-                    selected = !selected;
-                    if(selected && art ==0)setBackground(Color.YELLOW);
-                    else if(art == 0) setBackground(Color.WHITE);
-                }
+                    if(true){
+                        selected = !selected;
+                        if(selected && art ==0)setBackground(Color.YELLOW);
+                        else if(art == 0) setBackground(Color.WHITE);
+                    }
 
             
                 }                

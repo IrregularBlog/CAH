@@ -37,7 +37,7 @@ public class CAHServer implements Runnable
                 nachricht = nachricht.replace("*","");
                 int siegID = -1;
                 //nachricht.replace("*","");
-                
+
                 if(!spieler.get(clientNr).cardSzar){
                     spieler.get(clientNr).addKarte(Integer.parseInt(nachricht));
                     System.out.println("Spieler: "+spieler.get(clientNr).spielerID+" hat nun: "+whiteList.get(Integer.parseInt(nachricht)).text);
@@ -49,6 +49,9 @@ public class CAHServer implements Runnable
                 else{ 
                     siegID = Integer.parseInt(nachricht);
                     werHatDieKarteGespielt(siegID).punkte++;
+                    try{
+                        Thread.sleep(1000);
+                    }catch(Exception ex){}
                     neueRunde();
                 }
             }
@@ -62,13 +65,11 @@ public class CAHServer implements Runnable
             String nachricht;
             try{
                 neueWhiteCardsPersonal(3, clientNr);
-                neueBlackCard();
                 
+
                 if(clientNr == 2) neueRunde();
-                
 
                 while(true){
-
                     //System.out.println("Bin in der schleife");
                     if(sock.isClosed() || !sock.isConnected()){ 
                         clientAusgabeStröme.remove(clientNr);
@@ -84,9 +85,8 @@ public class CAHServer implements Runnable
         }
 
     }
-    
+
     public void run(){
-        
 
         try{
             ServerSocket serverSock = new ServerSocket(5000);
@@ -98,26 +98,19 @@ public class CAHServer implements Runnable
                 clientAusgabeStröme.add(writer);
                 //spieler.add(new Spieler(zähler));
                 zähler++;
-                
 
                 ClientHandler c = new ClientHandler(clientSocket);
-                
                 c.clientNr = clientAusgabeStröme.size()-1;
                 spieler.add(new Spieler(c.clientNr));
-                
-                
+
                 Thread t = new Thread(c);
-
                 t.start();
-                
-                for(int i=1; i<spieler.size(); i++){
-                System.out.println("Neuer spieler");
-                spielerSenden(spieler.get(i).spielerID);
-              }
-                
-                
-                System.out.println("habe eine Verbindung");
+                for(int i=0; i<spieler.size(); i++){
+                    System.out.println("Neuer spieler");
+                    spielerSenden(spieler.get(i).spielerID);
+                }
 
+                System.out.println("habe eine Verbindung");
             }
         }catch(Exception ex){
             ex.printStackTrace();
@@ -126,31 +119,38 @@ public class CAHServer implements Runnable
 
     public CAHServer()
     {
-        
+
         clientAusgabeStröme = new ArrayList();
         serverThread = new Thread(this);
         loadCards("whitecards.txt");
         loadBlackCards("blackcards.txt");
         System.out.println("Loaded cards");
         serverThread.start();
-        
+
     }
-    
+
+    public void startSignal(){
+        for(PrintWriter writer:clientAusgabeStröme){
+            writer.println("Start");
+            writer.flush();
+        }
+    }
+
     public void spielerSenden(int clientNr){
-        
+
         PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(clientNr);
         System.out.println("Hab keine PRo");
         writer.println("");
         writer.flush();
         for(int i=0; i<spieler.size(); i++){
-                    
-                    if(i<(spieler.size()-1))writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"=");
-                    else writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte);
-                }
+
+            if(i<(spieler.size()-1))writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte+"=");
+            else writer.print(spieler.get(i).spielerID+"%"+spieler.get(i).punkte);
+        }
         writer.flush();
         writer.println("");
         writer.flush();
-        
+
     }
 
     public Spieler werHatDieKarteGespielt(int id){
@@ -169,8 +169,8 @@ public class CAHServer implements Runnable
             if(spieler.get(i).karte.size() == 0 && !spieler.get(i).cardSzar){ 
                 fertig = false;
             }
-         }
-        
+        }
+
         return fertig;
     }
 
@@ -182,21 +182,31 @@ public class CAHServer implements Runnable
     }
 
     public void neueRunde(){
-       
+
+        
+        
         spielerKartenZurücksetzen();
+        startSignal();
         neueWhiteCards(1);
         
+        
+        
+        for(Spieler p: spieler){
+            p.cardSzar = false;
+        }
+
         spieler.get(runden%spieler.size()).cardSzar = true;
         PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(runden%spieler.size());
-        
         writer.println(":");
         writer.flush();
         
         
+
         neueBlackCard();
-        
-        
-        
+        for(int i=0; i<clientAusgabeStröme.size(); i++){
+            spielerSenden(i);
+        }
+
         
         
         
@@ -204,7 +214,7 @@ public class CAHServer implements Runnable
     }
 
     public void los(){
-        
+
     }
 
     public void esAllenWeitersagen(String nachricht){
@@ -221,18 +231,18 @@ public class CAHServer implements Runnable
             }
         }
     }
-    
+
     public void ausgabeStröme(){
         for(PrintWriter w : clientAusgabeStröme){
-        System.out.println(w);
-    }
+            System.out.println(w);
+        }
     }
 
     public void kartenDerAnderen(){
-            for(PrintWriter writer : clientAusgabeStröme){
-            
+        for(PrintWriter writer : clientAusgabeStröme){
+
             try{
-                
+
                 for(int i=0; i<spieler.size(); i++){
                     for(int j=0; j<spieler.get(i).karte.size(); j++){
                         whiteList.get(spieler.get(i).karte.get(j)).sendenZuAnderen(writer);
@@ -245,17 +255,19 @@ public class CAHServer implements Runnable
             }
         }
     }
+
     public void neueWhiteCardsPersonal(int wieViel, int wer){
-       PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(wer);
-       
-       ArrayList<Card> whiteListD = null;
-       whiteListD = (ArrayList<Card>) whiteList.clone();
-       for(int i=0; i<wieViel; i++){
-                    int zufallsZahl = (int) (Math.random()*whiteListD.size());
-                    whiteListD.get(zufallsZahl).senden(writer);
-                    whiteListD.remove(zufallsZahl);
-                }
+        PrintWriter writer = (PrintWriter) clientAusgabeStröme.get(wer);
+
+        ArrayList<Card> whiteListD = null;
+        whiteListD = (ArrayList<Card>) whiteList.clone();
+        for(int i=0; i<wieViel; i++){
+            int zufallsZahl = (int) (Math.random()*whiteListD.size());
+            whiteListD.get(zufallsZahl).senden(writer);
+            whiteListD.remove(zufallsZahl);
+        }
     }
+
     public void neueWhiteCards(int wieViel){
         Iterator it = clientAusgabeStröme.iterator();
 

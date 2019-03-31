@@ -21,8 +21,10 @@ public class CardsAgainstHumanityClient extends JFrame
     MyButton sender = null;
     JTextArea spielerListe = new JTextArea();
     ArrayList<Spieler> spieler = new ArrayList<Spieler>();
+
+    
     int leer = 0;
-    boolean cardSzar = false, amZug = true;
+    boolean cardSzar = false, amZug = true,dumm = false;
 
     Socket sock;
 
@@ -47,23 +49,34 @@ public class CardsAgainstHumanityClient extends JFrame
                             System.out.println("gucke nach selected");
                             Integer[] selected = getSelected();
                             //System.out.println("selected u.A.: "+selected[0]);
-                            for(int i=0; i<selected.length; i++){
-                                writer.println("*"+selected[i]);
-                                System.out.println("Karte gesendet: "+selected[i]);
+                            if (selected.length == 0) dumm = true;
+                            
+                            if(!dumm){
+                                for(int i=0; i<selected.length; i++){
+                                    writer.println("*"+selected[i]);
+                                    System.out.println("Karte gesendet: "+selected[i]);
+                                }
+                                writer.flush();
+
+                                setBackground(Color.YELLOW);
+                                setForeground(Color.white);
+                                paintComponent(getGraphics());
+                                try{
+                                    Thread.sleep(300);}catch(Exception ex){};
+                                setBackground(Color.GRAY);
+                                setForeground(Color.black);
+
+                                amZug = false;
+                                log(this+ ": Nicht mehr am Zug");
                             }
-                            writer.flush();
+                            else{
+                                JOptionPane.showMessageDialog(null,
+                                    "Du hast das Spiel nicht verstanden, als CardSzar kannst du keine Karten spielen.");
+                                    dumm = false;
+                            }
 
-                            setBackground(Color.YELLOW);
-                            setForeground(Color.white);
-                            paintComponent(getGraphics());
-                            try{
-                                Thread.sleep(300);}catch(Exception ex){};
-                            setBackground(Color.GRAY);
-                            setForeground(Color.black);
-
-                            amZug = false;
                         }
-                        
+
                     }                
                 });
 
@@ -74,6 +87,8 @@ public class CardsAgainstHumanityClient extends JFrame
         }
 
     }
+
+
     public CardsAgainstHumanityClient()
     {
         super();
@@ -124,10 +139,10 @@ public class CardsAgainstHumanityClient extends JFrame
 
     }
 
-
     public Integer[] getSelected(){
         ArrayList<Integer> select = new ArrayList<Integer>();
-        if(cardSzar){for(int i=0; i<cardsOther.size(); i++){
+        if(cardSzar){
+            for(int i=0; i<cardsOther.size(); i++){
 
                 if(cardsOther.get(i)!=null && cardsOther.get(i).selected){
                     select.add(cardsOther.get(i).id);
@@ -136,11 +151,13 @@ public class CardsAgainstHumanityClient extends JFrame
                 }
 
             }}
+           
         else{
             for(int i=0; i<cards.length; i++){
                 if(i<cards.length && cards[i]!=null && cards[i].selected){ 
                     select.add(cards[i].id);
                     jpnl[1].remove(cards[i]);
+                    jpnl[1].repaint();
                     cards[i] = null;
 
                 }
@@ -185,12 +202,7 @@ public class CardsAgainstHumanityClient extends JFrame
             String[] temp = nachricht.split("°");
             int id = Integer.parseInt(temp[0]);
             String text = temp[1];
-            sender.setText("Senden");
-            writer.println("p");
-            writer.flush();
-            System.out.println("Anfrage geschickt");
-            amZug = true;
-            
+
             //cardSzar = false;
             for(int i=0; i<cards.length; i++){
                 if(cards[i] == null){ 
@@ -202,12 +214,9 @@ public class CardsAgainstHumanityClient extends JFrame
             }
 
             // for(Card c: cards){
-                // c.selectable = true;
+            // c.usable = true;
             // }
 
-            
-
-       
 
             //Whitecard wird ersetzt
         }
@@ -218,16 +227,32 @@ public class CardsAgainstHumanityClient extends JFrame
             String text = temp[1];
 
             blackCard = new Card(id,1, text);
+            blackCard.setBounds(0, 0, 60, 100);
             updateMyBlackCard();
 
             //Blackcard wird ersetzt
         }
+        else if (nachricht.equals("Start")){
+
+            
+            sender.setText("Senden");
+            amZug = true;
+
+            jpnl[2].removeAll();
+            jpnl[2].repaint();
+
+            cardsOther.clear();
+
+            cardSzar = false;
+
+
+        }
         else if(nachricht.equals(":")){
+
+            
             cardSzar = true;
             sender.setText("CardSzar");
-            // for(Card c: cards){
-                // c.selectable = false;
-            // }
+
 
         }
         else if(nachricht.contains("=")){
@@ -245,7 +270,7 @@ public class CardsAgainstHumanityClient extends JFrame
 
         }
         else if(nachricht.contains("<")){
-            
+
             String[] temp = nachricht.split("<");
 
             int id = Integer.parseInt(temp[0]);
@@ -254,8 +279,8 @@ public class CardsAgainstHumanityClient extends JFrame
 
             cardsOther.add( new Card(id,0,text));
             if(cardSzar)System.out.println("Als CardSzar karte der anderen bekommen: "+cardsOther.get(cardsOther.size()-1).text);
-            //if(!cardSzar) cardsOther.get(cardsOther.size()-1).selectable = false;
-            //else cardsOther.get(cardsOther.size()-1).selectable = true;
+            //if(!cardSzar) cardsOther.get(cardsOther.size()-1).usable = false;
+            //else cardsOther.get(cardsOther.size()-1).usable = true;
             updateCardsOther();
         }
 
