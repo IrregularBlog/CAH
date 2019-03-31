@@ -42,9 +42,9 @@ public class CAHServer  extends JFrame implements Runnable, KeyListener
 
                 if(!spieler.get(clientNr).cardSzar){
                     spieler.get(clientNr).addKarte(Integer.parseInt(nachricht));
-                    System.out.println("Spieler: "+spieler.get(clientNr).spielerID+" hat nun: "+whiteList.get(Integer.parseInt(nachricht)).text);
+                    //System.out.println("Spieler: "+spieler.get(clientNr).spielerID+" hat nun: "+whiteList.get(Integer.parseInt(nachricht)).text);
                     if(alleSpielerBisAufCS()){
-                        System.out.println("Karten der anderen");
+                        //System.out.println("Karten der anderen");
                         kartenDerAnderen();
                     }
                 }
@@ -359,7 +359,7 @@ public class CAHServer  extends JFrame implements Runnable, KeyListener
                 if (blackList == null && !s.isEmpty() && !s.isBlank()){
                     Card tempCard = new Card(id,0,s);
                     whiteList.add(tempCard);
-                    System.out.println("Server hat nun: "+tempCard.text);
+                    //System.out.println("Server hat nun: "+tempCard.text);
                     id++;
                 }
                 else if(!s.isEmpty() && !s.isBlank()){ Card tempCard = new Card(id,1,s);
