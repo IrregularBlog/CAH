@@ -153,6 +153,8 @@ public class CardsAgainstHumanityClient extends JFrame
         for(int i=0; i<cardsOther.size(); i++){
             jpnl[2].add(cardsOther.get(i));
         }
+        
+        jpnl[2].repaint();
 
     }
 
