@@ -116,7 +116,7 @@ public class CardsAgainstHumanityClient extends JFrame
         
 
         
-        String s = (String)JOptionPane.showInputDialog(
+        ip = (String)JOptionPane.showInputDialog(
                     this,
                     "Gib die IP Adresse ein\n",
                     "IP Adresse",
