@@ -335,7 +335,7 @@ public class CAHServer  extends JFrame implements Runnable, KeyListener
                     in += s;
                     Card tempCard = new Card(id,1,s);
                     blackList.add(tempCard);
-                    System.out.println("Neue Blackcard: "+blackList.get(blackList.size()-1).text);
+                    //System.out.println("Neue Blackcard: "+blackList.get(blackList.size()-1).text);
                     id++;}
             }
 
@@ -392,6 +392,9 @@ public class CAHServer  extends JFrame implements Runnable, KeyListener
                 int anzahl = Integer.parseInt(s[2]);
                 neueWhiteCardsPersonal(anzahl, s2);
                 jtf.setText("Gave: "+s2+ "Anzahl: "+anzahl);
+            }
+            if(jtf.getText().contains("/help")){
+                jtf.setText("/neue Runde \n /give [SpielerID] [Kartenanzahl] whitecard");
             }
             // if(jtf.getText().contains("/kick")){
                 // String[] s = jtf.getText().split(" ");
